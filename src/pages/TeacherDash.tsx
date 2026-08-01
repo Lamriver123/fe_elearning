@@ -5,6 +5,8 @@ import { TeacherLayout } from '../features/teacher/presentation/components/Teach
 import { ClassList } from '../features/teacher/presentation/components/ClassList'
 import { useClasses } from '../features/teacher/application/useClasses'
 import { CreateClassModal } from '../features/teacher/presentation/components/CreateClassModal'
+import { ClassDetail } from '../features/teacher/presentation/components/ClassDetail'
+import UserProfile from './UserProfile.tsx'
 
 type TeacherAppProps = {
   user: AuthUser
@@ -80,7 +82,9 @@ export default function TeacherApp({ user, onLogout }: TeacherAppProps) {
     <TeacherLayout user={user} onLogout={onLogout}>
       <Routes>
         <Route path="/" element={<TeacherHomeContent user={user} />} />
-        <Route path="classes/*" element={<TeacherClassesContent />} />
+        <Route path="classes" element={<TeacherClassesContent />} />
+        <Route path="classes/:classId/*" element={<ClassDetail />} />
+        <Route path="profile" element={<UserProfile />} />
       </Routes>
     </TeacherLayout>
   )

@@ -20,12 +20,14 @@ export function TeacherSidebar({ onLogout }: TeacherSidebarProps) {
         className="teacher-sidebar__brand"
         style={{ textDecoration: 'none' }}
       >
-        <span className="teacher-sidebar__brand-text">Teacher Dashboard</span>
+        <div className="teacher-sidebar__logo">
+          <span className="material-symbols-outlined">workspace_premium</span>
+        </div>
+        <div>
+          <h1 className="teacher-sidebar__title">Giáo viên</h1>
+          <p className="teacher-sidebar__subtitle">Quản lý đào tạo</p>
+        </div>
       </Link>
-
-      <div className="teacher-sidebar__section-title">
-        E-learning Portal
-      </div>
 
       <nav className="teacher-sidebar__nav">
         {navItems.map((item) => (

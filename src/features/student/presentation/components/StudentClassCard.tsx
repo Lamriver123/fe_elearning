@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { StudentClassInfo } from '../../domain/studentClasses.types'
 
 type StudentClassCardProps = {
@@ -31,8 +32,11 @@ export function StudentClassCard({ classInfo, onAcceptInvite }: StudentClassCard
     dotClass = 'teacher-class-card__badge-dot--draft'
   }
 
+  const CardWrapper = isApproved ? Link : 'div'
+  const wrapperProps = isApproved ? { to: `/student/courses/${classInfo.id}`, style: { textDecoration: 'none' } } : {}
+
   return (
-    <div className={cardClasses}>
+    <CardWrapper {...(wrapperProps as any)} className={cardClasses}>
       <div className="teacher-class-card__image-wrapper">
         {classInfo.poster ? (
           <img 
@@ -103,6 +107,6 @@ export function StudentClassCard({ classInfo, onAcceptInvite }: StudentClassCard
           </div>
         )}
       </div>
-    </div>
+    </CardWrapper>
   )
 }

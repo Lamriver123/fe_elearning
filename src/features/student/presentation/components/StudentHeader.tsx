@@ -2,42 +2,39 @@ import type { AuthUser } from '../../../auth/domain/auth.types.ts'
 
 type StudentHeaderProps = {
   user: AuthUser
+  onMenuClick?: () => void
 }
 
-export function StudentHeader({ user }: StudentHeaderProps) {
+export function StudentHeader({ user, onMenuClick }: StudentHeaderProps) {
   return (
-    <header className="student-header">
-      <div className="student-header__brand" style={{ display: 'none' }}>
-        <span>E-Learning Platform</span>
+    <header className="student-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 32px' }}>
+      {/* Left side: Mobile Menu + Logo + Role */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="student-header__mobile-menu">
+          <button className="student-header__icon-btn" onClick={onMenuClick}>
+            <span className="material-symbols-outlined">menu</span>
+          </button>
+        </div>
+        <div className="header-brand-mobile-only" style={{ fontSize: '24px', fontWeight: 800, color: 'var(--color-primary)' }}>
+          E-Learning
+        </div>
+        <div className="header-brand-mobile-only" style={{ background: 'var(--color-primary-soft)', color: 'var(--color-primary-strong)', padding: '4px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 700 }}>
+          Học viên
+        </div>
       </div>
 
-      <div className="student-header__actions">
-        <div className="student-search">
-          <span className="material-symbols-outlined student-search__icon" aria-hidden="true">search</span>
-          <input 
-            className="student-search__input" 
-            placeholder="Tìm kiếm khoá học..." 
-            type="text" 
+      {/* Right side: Name + Avatar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <span style={{ fontWeight: 600, fontSize: '15px', color: 'var(--color-text)' }} className="hide-on-mobile">
+          {user.fullName}
+        </span>
+        <button className="student-header__avatar" style={{ overflow: 'hidden', padding: 0, width: '40px', height: '40px', border: '2px solid var(--color-primary-soft)' }}>
+          <img 
+            alt="User Avatar" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=random`} 
           />
-        </div>
-
-        <div className="student-header__tools">
-          <button aria-label="help" className="student-header__icon-btn">
-            <span className="material-symbols-outlined">help</span>
-          </button>
-          <button aria-label="settings" className="student-header__icon-btn">
-            <span className="material-symbols-outlined">settings</span>
-          </button>
-          
-          <button className="student-header__avatar" style={{ overflow: 'hidden', padding: 0 }}>
-            <img 
-              alt="User Avatar" 
-              className="student-header__avatar" 
-              style={{ width: '100%', height: '100%', margin: 0 }}
-              src={user.avatar || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDXcASnBhKkXcMz-4dj_IFw3CDj_jXnA3gqpRXDfsIHyJu6wie-Nn9QZg1HWbRvNenu_DzUszh8ZzThvKwLCSGU7tmrxYZpfC3LL2LYmHkG25xXuGTrJ0BNcWrp4wHcqHCyV8JoBy5zdV4tZOhNBqnfcHjn5wC41IzLMW_jEvWQS3SVFK_r95dcfVyyypzq9UAAiP01ncQrMbnK2M8H9p3eISEEH7d_uOE5FGLCZLhywtx5j6I7QNaBig'} 
-            />
-          </button>
-        </div>
+        </button>
       </div>
     </header>
   )

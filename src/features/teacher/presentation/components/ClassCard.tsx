@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import type { ClassInfo } from '../../domain/teacher.types'
 
 type ClassCardProps = {
@@ -5,6 +6,7 @@ type ClassCardProps = {
 }
 
 export function ClassCard({ classInfo }: ClassCardProps) {
+  const navigate = useNavigate()
   const isFinished = classInfo.statusMock === 'finished'
   const isOngoing = classInfo.statusMock === 'ongoing'
   const isUpcoming = classInfo.statusMock === 'upcoming'
@@ -37,8 +39,12 @@ export function ClassCard({ classInfo }: ClassCardProps) {
     })
   }
 
+  const handleCardClick = () => {
+    navigate(`/teacher/classes/${classInfo.id}`)
+  }
+
   return (
-    <div className={cardClasses}>
+    <div className={cardClasses} onClick={handleCardClick} style={{ cursor: 'pointer' }}>
       <div className="teacher-class-card__image-wrapper">
         {classInfo.poster ? (
           <img 

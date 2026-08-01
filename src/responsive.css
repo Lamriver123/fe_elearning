@@ -1,0 +1,28 @@
+/* Responsive Utilities for Exam Detail */
+.question-options-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-left: 0;
+}
+
+.question-explanation {
+  margin-top: 20px;
+  margin-left: 0;
+}
+
+.question-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+  margin-left: 0;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 640px) {
+  .question-options-container,
+  .question-explanation,
+  .question-actions {
+    margin-left: 66px;
+  }
+}

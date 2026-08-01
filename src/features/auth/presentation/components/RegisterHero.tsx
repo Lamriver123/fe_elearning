@@ -1,5 +1,3 @@
-import loginHero from '../../../../assets/login-hero.jpg'
-
 export function RegisterHero() {
   return (
     <aside className="login-hero" aria-label="E-learning Registration">

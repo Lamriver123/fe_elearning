@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 import type { AuthUser } from '../../../auth/domain/auth.types'
 import { TeacherSidebar } from './TeacherSidebar'
@@ -11,10 +12,17 @@ type TeacherLayoutProps = {
 }
 
 export function TeacherLayout({ children, user, onLogout }: TeacherLayoutProps) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
     <div className="teacher-dashboard">
-      <TeacherHeader user={user} />
-      <TeacherSidebar onLogout={onLogout} />
+      <TeacherHeader user={user} onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <div className={`teacher-sidebar-container ${isSidebarOpen ? 'open' : ''}`}>
+        {isSidebarOpen && (
+          <div className="teacher-sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
+        )}
+        <TeacherSidebar onLogout={onLogout} />
+      </div>
       
       <main className="teacher-main">
         {children}

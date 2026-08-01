@@ -645,6 +645,39 @@
 }
 
 /* Responsive adjustments */
+.student-header__mobile-menu {
+  display: flex;
+  align-items: center;
+  margin-right: 16px;
+}
+
+@media (max-width: 600px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .student-header__mobile-menu,
+  .header-brand-mobile-only {
+    display: none !important;
+  }
+}
+
+.student-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 15;
+}
+
+.student-sidebar-container {
+  display: contents;
+}
+
 @media (max-width: 1024px) {
   .student-grid {
     grid-template-columns: 1fr;
@@ -652,8 +685,18 @@
 }
 
 @media (max-width: 768px) {
-  .student-sidebar {
-    display: none; /* In a real app, we'd add a hamburger menu */
+  .student-sidebar-container .student-sidebar {
+    position: fixed;
+    top: 0;
+    left: -256px;
+    bottom: 0;
+    z-index: 20;
+    transition: left 0.3s ease;
+    display: flex;
+  }
+  
+  .student-sidebar-container.open .student-sidebar {
+    left: 0;
   }
   
   .student-main-wrapper {
@@ -945,4 +988,515 @@
 .preview-modal__btn-join:disabled {
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+/* ============================================
+   Exam Timeline / TODO List
+   ============================================ */
+
+/* Loading & Error & Empty */
+.exam-timeline-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: var(--color-muted);
+}
+
+.exam-timeline-loading__icon {
+  font-size: 48px;
+  color: var(--color-primary);
+  margin-bottom: 16px;
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.exam-timeline-error {
+  padding: 20px;
+  color: var(--color-error);
+  background-color: var(--color-error-soft);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+}
+
+.exam-timeline-empty {
+  padding: 80px 20px;
+  text-align: center;
+  background-color: var(--color-surface);
+  border-radius: 16px;
+  border: 2px dashed var(--color-border);
+}
+
+.exam-timeline-empty__icon {
+  font-size: 72px;
+  color: var(--color-muted-soft);
+  margin-bottom: 16px;
+  display: block;
+}
+
+.exam-timeline-empty__title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: var(--color-text);
+}
+
+.exam-timeline-empty__desc {
+  color: var(--color-muted);
+  margin: 0;
+  font-size: 15px;
+}
+
+/* Summary bar */
+.exam-timeline-summary {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 20px 32px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.exam-timeline-summary__item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  justify-content: center;
+}
+
+.exam-timeline-summary__item > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.exam-timeline-summary__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.exam-timeline-summary__icon--total {
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.exam-timeline-summary__icon--pending {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
+.exam-timeline-summary__icon--done {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.exam-timeline-summary__number {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.exam-timeline-summary__label {
+  font-size: 12px;
+  color: var(--color-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.exam-timeline-summary__divider {
+  width: 1px;
+  height: 40px;
+  background-color: var(--color-border);
+  flex-shrink: 0;
+}
+
+/* Timeline list container */
+.exam-timeline-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Timeline item */
+.exam-timeline-item {
+  display: flex;
+  gap: 0;
+  position: relative;
+}
+
+/* Timeline connector (dot + line) */
+.exam-timeline-item__connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 48px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.exam-timeline-item__dot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  flex-shrink: 0;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.exam-timeline-item__dot .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.exam-timeline-item:hover .exam-timeline-item__dot {
+  transform: scale(1.15);
+}
+
+/* Dot colors by status */
+.exam-timeline-item__dot.exam-timeline-status--pending {
+  background-color: #fff3e0;
+  color: #e65100;
+  box-shadow: 0 0 0 4px rgba(230, 81, 0, 0.08);
+}
+
+.exam-timeline-item__dot.exam-timeline-status--upcoming {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  box-shadow: 0 0 0 4px rgba(21, 101, 192, 0.08);
+}
+
+.exam-timeline-item__dot.exam-timeline-status--submitted {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.08);
+}
+
+.exam-timeline-item__dot.exam-timeline-status--expired {
+  background-color: #f5f5f5;
+  color: #9e9e9e;
+  box-shadow: 0 0 0 4px rgba(158, 158, 158, 0.08);
+}
+
+.exam-timeline-item__line {
+  width: 2px;
+  flex: 1;
+  background-color: var(--color-border);
+  min-height: 24px;
+}
+
+/* Card */
+.exam-timeline-item__card {
+  flex: 1;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  margin-left: 8px;
+  transition: box-shadow 0.25s, border-color 0.25s, transform 0.2s;
+  position: relative;
+}
+
+.exam-timeline-item__card::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 12px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  transform: rotate(45deg);
+}
+
+.exam-timeline-item:hover .exam-timeline-item__card {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
+  border-color: var(--color-primary-soft);
+  transform: translateX(4px);
+}
+
+/* Card header */
+.exam-timeline-item__header {
+  margin-bottom: 14px;
+}
+
+.exam-timeline-item__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.exam-timeline-item__title {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.exam-timeline-item__badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.exam-timeline-item__badge.exam-timeline-status--pending {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
+.exam-timeline-item__badge.exam-timeline-status--upcoming {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.exam-timeline-item__badge.exam-timeline-status--submitted {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.exam-timeline-item__badge.exam-timeline-status--expired {
+  background-color: #f5f5f5;
+  color: #9e9e9e;
+}
+
+.exam-timeline-item__desc {
+  color: var(--color-muted);
+  font-size: 14px;
+  margin: 8px 0 0 0;
+  line-height: 1.5;
+}
+
+/* Meta chips */
+.exam-timeline-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.exam-timeline-item__meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background-color: var(--color-surface-soft);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.exam-timeline-item__meta-chip .material-symbols-outlined {
+  font-size: 16px;
+}
+
+/* Milestones (time info) */
+.exam-timeline-item__milestones {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 16px;
+  background-color: var(--color-surface-soft);
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.exam-timeline-item__milestone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.exam-timeline-item__milestone .material-symbols-outlined {
+  font-size: 16px;
+  color: var(--color-muted);
+}
+
+.exam-timeline-item__milestone-label {
+  font-weight: 700;
+  color: var(--color-muted);
+  min-width: 38px;
+}
+
+.exam-timeline-item__milestone-relative {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Action button */
+.exam-timeline-item__actions {
+  display: flex;
+}
+
+.exam-timeline-item__action-link {
+  text-decoration: none;
+  display: flex;
+  width: 100%;
+}
+
+.exam-timeline-item__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.exam-timeline-item__btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.exam-timeline-item__btn--primary {
+  background-color: var(--color-primary);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 100, 146, 0.15);
+}
+
+.exam-timeline-item__btn--primary:hover {
+  background-color: var(--color-primary-strong);
+  box-shadow: 0 4px 12px rgba(0, 100, 146, 0.25);
+  transform: translateY(-1px);
+}
+
+.exam-timeline-item__btn--secondary {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+}
+
+.exam-timeline-item__btn--secondary:hover {
+  background-color: var(--color-primary-soft);
+}
+
+/* Status-specific card left border accent */
+.exam-timeline-status--pending .exam-timeline-item__card {
+  border-left: 3px solid #ff9800;
+}
+
+.exam-timeline-status--upcoming .exam-timeline-item__card {
+  border-left: 3px solid #2196f3;
+}
+
+.exam-timeline-status--submitted .exam-timeline-item__card {
+  border-left: 3px solid #4caf50;
+}
+
+.exam-timeline-status--expired .exam-timeline-item__card {
+  border-left: 3px solid #bdbdbd;
+  opacity: 0.7;
+}
+
+.exam-timeline-status--expired:hover .exam-timeline-item__card {
+  opacity: 1;
+}
+
+/* ============================================
+   Responsive - Exam Timeline
+   ============================================ */
+@media (max-width: 768px) {
+  .exam-timeline-summary {
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+  }
+  
+  .exam-timeline-summary__divider {
+    width: 100%;
+    height: 1px;
+  }
+  
+  .exam-timeline-summary__item {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .exam-timeline-item__connector {
+    width: 36px;
+  }
+
+  .exam-timeline-item__dot {
+    width: 32px;
+    height: 32px;
+  }
+
+  .exam-timeline-item__dot .material-symbols-outlined {
+    font-size: 16px;
+  }
+
+  .exam-timeline-item__card {
+    padding: 16px;
+    margin-left: 4px;
+    margin-bottom: 16px;
+  }
+
+  .exam-timeline-item__card::before {
+    display: none;
+  }
+
+  .exam-timeline-item__title {
+    font-size: 15px;
+  }
+
+  .exam-timeline-item__meta {
+    gap: 6px;
+  }
+
+  .exam-timeline-item__meta-chip {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .exam-timeline-item__milestone {
+    font-size: 12px;
+    flex-wrap: wrap;
+  }
+
+  .exam-timeline-item__btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .exam-timeline-item__title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 }

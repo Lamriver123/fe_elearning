@@ -1,4 +1,3 @@
-import React from 'react'
 import type { StudentClassInfo } from '../../domain/studentClasses.types'
 
 interface PreviewClassModalProps {
