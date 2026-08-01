@@ -1,0 +1,137 @@
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
+import type { AuthSession, LoginCredentials } from '../domain/auth.types'
+import { authApi } from '../infrastructure/authApi'
+import {
+  clearAuthSession,
+  getAuthSession,
+  saveAuthSession,
+  updateAuthTokens,
+} from '../infrastructure/authStorage'
+import { AuthContext, type AuthContextValue } from './auth-context'
+
+type AuthProviderProps = {
+  children: ReactNode
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [session, setSession] = useState<AuthSession | null>(() => getAuthSession())
+  const [isLoading, setIsLoading] = useState(true)
+
+  const refreshSession = useCallback(async () => {
+    const currentSession = getAuthSession()
+    if (!currentSession) {
+      setSession(null)
+      return null
+    }
+
+    const tokens = await authApi.refresh(currentSession.refreshToken)
+    const refreshedSession = updateAuthTokens(tokens.accessToken, tokens.refreshToken)
+
+    if (!refreshedSession) {
+      return null
+    }
+
+    setSession(refreshedSession)
+    return refreshedSession
+  }, [])
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function restoreSession() {
+      const storedSession = getAuthSession()
+      if (!storedSession) {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+        return
+      }
+
+      try {
+        const profile = await authApi.profile(storedSession.accessToken)
+        const verifiedSession = { ...storedSession, user: profile }
+        saveAuthSession(verifiedSession)
+
+        if (isMounted) {
+          setSession(verifiedSession)
+        }
+      } catch {
+        try {
+          const refreshedSession = await refreshSession()
+          if (refreshedSession) {
+            const profile = await authApi.profile(refreshedSession.accessToken)
+            const verifiedSession = { ...refreshedSession, user: profile }
+            saveAuthSession(verifiedSession)
+
+            if (isMounted) {
+              setSession(verifiedSession)
+            }
+          }
+        } catch {
+          clearAuthSession()
+
+          if (isMounted) {
+            setSession(null)
+          }
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    restoreSession()
+
+    return () => {
+      isMounted = false
+    }
+  }, [refreshSession])
+
+  const login = useCallback(async (credentials: LoginCredentials, remember: boolean) => {
+    const response = await authApi.login(credentials)
+    const nextSession: AuthSession = {
+      user: response.user,
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken,
+      remember,
+      savedAt: Date.now(),
+    }
+
+    saveAuthSession(nextSession)
+    setSession(nextSession)
+    return nextSession
+  }, [])
+
+  const logout = useCallback(async () => {
+    const currentSession = getAuthSession()
+    clearAuthSession()
+    setSession(null)
+
+    if (!currentSession?.accessToken) {
+      return
+    }
+
+    try {
+      await authApi.logout(currentSession.accessToken)
+    } catch {
+      // Local logout should still complete if the token is already invalid.
+    }
+  }, [])
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      session,
+      user: session?.user ?? null,
+      isAuthenticated: Boolean(session),
+      isLoading,
+      login,
+      logout,
+      refreshSession,
+    }),
+    [isLoading, login, logout, refreshSession, session],
+  )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
