@@ -1,5 +1,3 @@
-import type { UserRole } from '../../../shared/constants/roles'
-
 export type UpdateProfilePayload = {
   fullName?: string
   phone?: string
