@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'react-hot-toast';
 import { httpClient } from '../../../../shared/lib/httpClient';
 
 type StudentMember = {
@@ -50,20 +51,44 @@ export function StudentListTab({ classId }: { classId: string }) {
   const [selectedStudent, setSelectedStudent] = useState<StudentMember | null>(null);
   const [filter, setFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'INVITED'>('ALL');
 
-  useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        setIsLoading(true);
-        const data = await httpClient.get(`/classes/${classId}/members`) as StudentMember[];
-        setMembers(data);
-      } catch (err: any) {
-        setError(err.message || 'Lỗi khi tải danh sách');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchMembers();
+  const fetchMembers = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await httpClient.get(`/classes/${classId}/members`) as StudentMember[];
+      setMembers(data);
+    } catch (err: any) {
+      setError(err.message || 'Lỗi khi tải danh sách');
+    } finally {
+      setIsLoading(false);
+    }
   }, [classId]);
+
+  useEffect(() => {
+    fetchMembers();
+  }, [fetchMembers]);
+
+  const handleApprove = async (studentId: string, status: 'APPROVED' | 'REJECTED') => {
+    try {
+      await httpClient.patch(`/classes/${classId}/members/${studentId}/approve`, { status });
+      toast.success(status === 'APPROVED' ? 'Đã duyệt học sinh' : 'Đã từ chối học sinh');
+      setSelectedStudent(null);
+      fetchMembers();
+    } catch (err: any) {
+      toast.error(err.message || 'Có lỗi xảy ra');
+    }
+  };
+
+  const handleKick = async (studentId: string) => {
+    if (!window.confirm('Bạn có chắc chắn muốn đuổi học sinh này khỏi lớp?')) return;
+    try {
+      await httpClient.delete(`/classes/${classId}/members/${studentId}`);
+      toast.success('Đã xóa học sinh khỏi lớp');
+      setSelectedStudent(null);
+      fetchMembers();
+    } catch (err: any) {
+      toast.error(err.message || 'Có lỗi xảy ra');
+    }
+  };
 
   const filteredMembers = filter === 'ALL' ? members : members.filter(m => m.status === filter);
 
@@ -195,7 +220,7 @@ export function StudentListTab({ classId }: { classId: string }) {
       {/* Student detail modal */}
       {selectedStudent && (
         <div className="student-detail-overlay" onClick={() => setSelectedStudent(null)}>
-          <div className="student-detail-modal" onClick={e => e.stopPropagation()}>
+          <div className="student-detail-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '100%' }}>
             <button className="student-detail-modal__close" onClick={() => setSelectedStudent(null)}>
               <span className="material-symbols-outlined">close</span>
             </button>
@@ -219,8 +244,8 @@ export function StudentListTab({ classId }: { classId: string }) {
               </span>
             </div>
 
-            <div className="student-detail-modal__body">
-              <div className="student-detail-modal__field">
+            <div className="student-detail-modal__body" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px', padding: '24px' }}>
+              <div className="student-detail-modal__field" style={{ gridColumn: 'span 2', paddingBottom: '0', borderBottom: 'none' }}>
                 <span className="material-symbols-outlined">mail</span>
                 <div>
                   <span className="student-detail-modal__field-label">Email</span>
@@ -228,7 +253,7 @@ export function StudentListTab({ classId }: { classId: string }) {
                 </div>
               </div>
 
-              <div className="student-detail-modal__field">
+              <div className="student-detail-modal__field" style={{ paddingBottom: '0', borderBottom: 'none' }}>
                 <span className="material-symbols-outlined">phone</span>
                 <div>
                   <span className="student-detail-modal__field-label">Số điện thoại</span>
@@ -236,7 +261,7 @@ export function StudentListTab({ classId }: { classId: string }) {
                 </div>
               </div>
 
-              <div className="student-detail-modal__field">
+              <div className="student-detail-modal__field" style={{ paddingBottom: '0', borderBottom: 'none' }}>
                 <span className="material-symbols-outlined">wc</span>
                 <div>
                   <span className="student-detail-modal__field-label">Giới tính</span>
@@ -244,7 +269,7 @@ export function StudentListTab({ classId }: { classId: string }) {
                 </div>
               </div>
 
-              <div className="student-detail-modal__field">
+              <div className="student-detail-modal__field" style={{ paddingBottom: '0', borderBottom: 'none' }}>
                 <span className="material-symbols-outlined">cake</span>
                 <div>
                   <span className="student-detail-modal__field-label">Ngày sinh</span>
@@ -252,7 +277,7 @@ export function StudentListTab({ classId }: { classId: string }) {
                 </div>
               </div>
 
-              <div className="student-detail-modal__field">
+              <div className="student-detail-modal__field" style={{ paddingBottom: '0', borderBottom: 'none' }}>
                 <span className="material-symbols-outlined">location_on</span>
                 <div>
                   <span className="student-detail-modal__field-label">Địa chỉ</span>
@@ -260,7 +285,7 @@ export function StudentListTab({ classId }: { classId: string }) {
                 </div>
               </div>
 
-              <div className="student-detail-modal__field">
+              <div className="student-detail-modal__field" style={{ paddingBottom: '0', borderBottom: 'none' }}>
                 <span className="material-symbols-outlined">event</span>
                 <div>
                   <span className="student-detail-modal__field-label">Ngày tham gia lớp</span>
@@ -268,13 +293,40 @@ export function StudentListTab({ classId }: { classId: string }) {
                 </div>
               </div>
 
-              <div className="student-detail-modal__field">
+              <div className="student-detail-modal__field" style={{ paddingBottom: '0', borderBottom: 'none' }}>
                 <span className="material-symbols-outlined">person_add</span>
                 <div>
                   <span className="student-detail-modal__field-label">Ngày đăng ký tài khoản</span>
                   <span className="student-detail-modal__field-value">{formatDate(selectedStudent.student.createdAt)}</span>
                 </div>
               </div>
+            </div>
+
+            <div className="student-detail-modal__actions" style={{ display: 'flex', gap: '12px', padding: '16px 24px', borderTop: '1px solid var(--color-border)' }}>
+              {selectedStudent.status === 'PENDING' && (
+                <>
+                  <button 
+                    onClick={() => handleApprove(selectedStudent.student.id, 'APPROVED')}
+                    style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: '#2e7d32', color: 'white', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Duyệt tham gia
+                  </button>
+                  <button 
+                    onClick={() => handleApprove(selectedStudent.student.id, 'REJECTED')}
+                    style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #c62828', backgroundColor: 'transparent', color: '#c62828', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Từ chối
+                  </button>
+                </>
+              )}
+              {selectedStudent.status === 'APPROVED' && (
+                <button 
+                  onClick={() => handleKick(selectedStudent.student.id)}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #c62828', backgroundColor: '#ffebee', color: '#c62828', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Xóa khỏi lớp
+                </button>
+              )}
             </div>
           </div>
         </div>

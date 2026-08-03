@@ -193,9 +193,37 @@ export function ExamTaker({ classId }: { classId: string }) {
                     Kỹ năng: {section.skillType}
                   </span>
                 </div>
+                {section.files && section.files.length > 0 && (
+                  <div style={{ marginBottom: '16px' }}>
+                    {section.files.map((f: any) => (
+                      <div key={f.id} style={{ marginBottom: '12px' }}>
+                        {f.fileType === 'AUDIO' && (
+                          <div style={{ backgroundColor: 'var(--color-surface)', padding: '16px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                              <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>headphones</span>
+                              <span style={{ fontWeight: 600 }}>Audio bài nghe</span>
+                            </div>
+                            <audio controls src={f.fileUrl} style={{ width: '100%' }} />
+                          </div>
+                        )}
+                        {f.fileType !== 'AUDIO' && (
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: 'var(--color-surface)', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+                            <span className="material-symbols-outlined">attach_file</span>
+                            <a href={f.fileUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 500 }}>
+                              Tài liệu đính kèm
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {section.instructions && (
-                  <div style={{ padding: '12px', backgroundColor: 'rgba(33, 150, 243, 0.05)', borderLeft: '4px solid #2196f3', borderRadius: '4px' }}>
-                    <p style={{ margin: 0, color: 'var(--color-text)' }}>{section.instructions}</p>
+                  <div style={{ padding: '16px', backgroundColor: 'var(--color-surface-soft)', borderLeft: '4px solid var(--color-primary)', borderRadius: '4px', marginBottom: '24px' }}>
+                    <span style={{ fontWeight: 600, display: 'block', marginBottom: '8px', color: 'var(--color-muted)' }}>
+                      {section.skillType === 'READING' ? 'Nội dung bài đọc:' : 'Hướng dẫn làm bài:'}
+                    </span>
+                    <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.8', color: 'var(--color-text)' }}>{section.instructions}</div>
                   </div>
                 )}
               </div>

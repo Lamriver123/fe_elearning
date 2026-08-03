@@ -1,13 +1,28 @@
 import { useNavigate } from 'react-router-dom';
 import { useExams } from '../../application/useExams.js';
+import { examApi } from '../../infrastructure/examApi.js';
+import { toast } from 'react-hot-toast';
 
 type ExamListProps = {
   classId: string;
 };
 
 export function ExamList({ classId }: ExamListProps) {
-  const { exams, isLoading, error } = useExams(classId);
+  const { exams, isLoading, error, refreshExams } = useExams(classId);
   const navigate = useNavigate();
+
+  const handleDeleteExam = async (examId: string) => {
+    if (!window.confirm('Bạn có chắc muốn xóa đề thi này không? Mọi dữ liệu liên quan và bài làm của học sinh sẽ bị xóa vĩnh viễn.')) {
+      return;
+    }
+    try {
+      await examApi.deleteExam(classId, examId);
+      toast.success('Đã xóa đề thi thành công');
+      refreshExams();
+    } catch (err: any) {
+      toast.error(err?.message || 'Không thể xóa đề thi');
+    }
+  };
 
   if (isLoading) {
     return <div style={{ padding: '40px', textAlign: 'center' }}>Đang tải danh sách đề thi...</div>;
@@ -118,25 +133,32 @@ export function ExamList({ classId }: ExamListProps) {
                 </span>
               </div>
               
-              <div style={{ marginTop: 'auto', display: 'flex', gap: '12px', paddingTop: '20px', borderTop: '1px solid var(--color-border)' }}>
+              <div style={{ marginTop: 'auto', display: 'flex', gap: '8px', paddingTop: '20px', borderTop: '1px solid var(--color-border)' }}>
                 <button 
                   className="teacher-btn-outline" 
-                  style={{ flex: 1, padding: '10px', display: 'flex', justifyContent: 'center', gap: '6px', alignItems: 'center' }}
+                  style={{ flex: 1, padding: '8px', display: 'flex', justifyContent: 'center', gap: '4px', alignItems: 'center', fontSize: '13px' }}
                   onClick={() => navigate(`/teacher/classes/${classId}/exams/${exam.id}`)}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>visibility</span>
                   Chi tiết
                 </button>
-                {exam.status === 'DRAFT' && (
-                  <button 
-                    className="teacher-btn-primary" 
-                    style={{ flex: 1, padding: '10px', display: 'flex', justifyContent: 'center', gap: '6px', alignItems: 'center' }}
-                    onClick={() => navigate(`/teacher/classes/${classId}/exams/${exam.id}`)}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span>
-                    Sửa đề
-                  </button>
-                )}
+                <button 
+                  className="teacher-btn-primary" 
+                  style={{ flex: 1, padding: '8px', display: 'flex', justifyContent: 'center', gap: '4px', alignItems: 'center', fontSize: '13px' }}
+                  onClick={() => navigate(`/teacher/classes/${classId}/exams/${exam.id}`)}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
+                  Sửa đề
+                </button>
+                <button 
+                  className="teacher-btn-outline" 
+                  style={{ flex: 1, padding: '8px', display: 'flex', justifyContent: 'center', gap: '4px', alignItems: 'center', fontSize: '13px', color: 'var(--color-error)', borderColor: 'var(--color-error)' }}
+                  onClick={() => handleDeleteExam(exam.id)}
+                  title="Xóa đề thi"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
+                  Xóa
+                </button>
               </div>
             </div>
           ))}

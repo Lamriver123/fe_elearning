@@ -36,6 +36,7 @@ export type ExamSection = {
   orderIndex: number;
   pointsPerQuestion?: number;
   questions?: Question[];
+  files?: any[];
 };
 
 export type Exam = {

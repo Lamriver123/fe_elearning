@@ -14,7 +14,7 @@ type UploadExamFileModalProps = {
 
 export function UploadExamFileModal({ classId, examId, sectionId, questionId, isOpen, onClose, onSuccess }: UploadExamFileModalProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [purpose, setPurpose] = useState('MATERIAL');
+  const [purpose, setPurpose] = useState('EXAM_ORIGINAL');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -32,7 +32,7 @@ export function UploadExamFileModal({ classId, examId, sectionId, questionId, is
       await examApi.uploadExamFile(classId, examId, file, purpose, sectionId, questionId);
       toast.success('Upload file thành công');
       setFile(null);
-      setPurpose('MATERIAL');
+      setPurpose('EXAM_ORIGINAL');
       onSuccess();
       onClose();
     } catch (err) {
@@ -90,8 +90,8 @@ export function UploadExamFileModal({ classId, examId, sectionId, questionId, is
               onChange={e => setPurpose(e.target.value)}
               disabled={isSubmitting}
             >
-              <option value="MATERIAL">Tài liệu tham khảo (Đề bài/PDF)</option>
-              <option value="AUDIO">File Audio (Bài nghe)</option>
+              <option value="EXAM_ORIGINAL">Tài liệu tham khảo (Đề bài/PDF)</option>
+              <option value="LISTENING_AUDIO">File Audio (Bài nghe)</option>
               <option value="ANSWER_KEY">File Đáp án</option>
             </select>
           </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { examApi } from '../../infrastructure/examApi';
 
@@ -7,11 +7,19 @@ type AddQuestionModalProps = {
   examId: string;
   sectionId: string;
   isOpen: boolean;
+  initialData?: {
+    id: string;
+    questionType: string;
+    content: string;
+    points: number;
+    explanation?: string;
+    options?: { id: string; label?: string; content: string; isCorrect?: boolean; orderIndex: number }[];
+  };
   onClose: () => void;
   onSuccess: () => void;
 };
 
-export function AddQuestionModal({ classId, examId, sectionId, isOpen, onClose, onSuccess }: AddQuestionModalProps) {
+export function AddQuestionModal({ classId, examId, sectionId, isOpen, initialData, onClose, onSuccess }: AddQuestionModalProps) {
   const [questionType, setQuestionType] = useState('MULTIPLE_CHOICE');
   const [content, setContent] = useState('');
   const [points, setPoints] = useState(1);
@@ -25,6 +33,46 @@ export function AddQuestionModal({ classId, examId, sectionId, isOpen, onClose, 
     { label: 'C', content: '', isCorrect: false },
     { label: 'D', content: '', isCorrect: false }
   ]);
+
+  useEffect(() => {
+    if (isOpen && initialData) {
+      setQuestionType(initialData.questionType || 'MULTIPLE_CHOICE');
+      setContent(initialData.content || '');
+      setPoints(initialData.points || 1);
+      setExplanation(initialData.explanation || '');
+      
+      if (initialData.options && initialData.options.length > 0) {
+        // Map existing options or pad with empty ones
+        const defaultLabels = ['A', 'B', 'C', 'D'];
+        const mappedOptions = defaultLabels.map((label, idx) => {
+          const opt = initialData.options![idx];
+          if (opt) {
+            return { label, content: opt.content, isCorrect: !!opt.isCorrect };
+          }
+          return { label, content: '', isCorrect: false };
+        });
+        setOptions(mappedOptions);
+      } else {
+        setOptions([
+          { label: 'A', content: '', isCorrect: true },
+          { label: 'B', content: '', isCorrect: false },
+          { label: 'C', content: '', isCorrect: false },
+          { label: 'D', content: '', isCorrect: false }
+        ]);
+      }
+    } else if (isOpen) {
+      setQuestionType('MULTIPLE_CHOICE');
+      setContent('');
+      setPoints(1);
+      setExplanation('');
+      setOptions([
+        { label: 'A', content: '', isCorrect: true },
+        { label: 'B', content: '', isCorrect: false },
+        { label: 'C', content: '', isCorrect: false },
+        { label: 'D', content: '', isCorrect: false }
+      ]);
+    }
+  }, [isOpen, initialData]);
 
   if (!isOpen) return null;
 
@@ -72,8 +120,13 @@ export function AddQuestionModal({ classId, examId, sectionId, isOpen, onClose, 
         options: questionType === 'MULTIPLE_CHOICE' ? options.filter(o => o.content.trim() !== '') : []
       };
 
-      await examApi.addQuestion(classId, examId, sectionId, payload);
-      toast.success('Thêm câu hỏi thành công');
+      if (initialData) {
+        await examApi.updateQuestion(classId, examId, sectionId, initialData.id, payload);
+        toast.success('Cập nhật câu hỏi thành công');
+      } else {
+        await examApi.addQuestion(classId, examId, sectionId, payload);
+        toast.success('Thêm câu hỏi thành công');
+      }
       
       // Reset form
       setContent('');
@@ -99,7 +152,7 @@ export function AddQuestionModal({ classId, examId, sectionId, isOpen, onClose, 
     <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1100 }}>
       <div className="modal-content" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h2 className="modal-title">Thêm Câu Hỏi Mới</h2>
+          <h2 className="modal-title">{initialData ? 'Sửa Câu Hỏi' : 'Thêm Câu Hỏi Mới'}</h2>
           <button type="button" className="modal-close" onClick={onClose}>
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -217,7 +270,7 @@ export function AddQuestionModal({ classId, examId, sectionId, isOpen, onClose, 
           <div className="modal-footer">
             <button type="button" className="teacher-btn-outline" onClick={onClose} disabled={isSubmitting}>Hủy</button>
             <button type="submit" className="teacher-btn-primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Đang lưu...' : 'Thêm câu hỏi'}
+              {isSubmitting ? 'Đang lưu...' : (initialData ? 'Cập nhật' : 'Thêm câu hỏi')}
             </button>
           </div>
         </form>

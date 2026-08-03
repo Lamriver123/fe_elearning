@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { examApi } from '../../infrastructure/examApi';
 
@@ -6,15 +6,34 @@ type AddSectionModalProps = {
   classId: string;
   examId: string;
   isOpen: boolean;
+  initialData?: {
+    id: string;
+    title: string;
+    instructions?: string;
+    skillType?: string;
+  };
   onClose: () => void;
   onSuccess: () => void;
 };
 
-export function AddSectionModal({ classId, examId, isOpen, onClose, onSuccess }: AddSectionModalProps) {
+export function AddSectionModal({ classId, examId, isOpen, initialData, onClose, onSuccess }: AddSectionModalProps) {
   const [title, setTitle] = useState('');
   const [instructions, setInstructions] = useState('');
   const [skillType, setSkillType] = useState('READING');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load initialData when opening in edit mode
+  useEffect(() => {
+    if (isOpen && initialData) {
+      setTitle(initialData.title || '');
+      setInstructions(initialData.instructions || '');
+      setSkillType(initialData.skillType || 'READING');
+    } else if (isOpen) {
+      setTitle('');
+      setInstructions('');
+      setSkillType('READING');
+    }
+  }, [isOpen, initialData]);
 
   if (!isOpen) return null;
 
@@ -27,13 +46,22 @@ export function AddSectionModal({ classId, examId, isOpen, onClose, onSuccess }:
 
     try {
       setIsSubmitting(true);
-      await examApi.addSection(classId, examId, {
-        title,
-        instructions,
-        skillType,
-        orderIndex: 0 // Backend will handle the exact order or we just pass 0 for now
-      });
-      toast.success('Thêm phần thi thành công');
+      if (initialData) {
+        await examApi.updateSection(classId, examId, initialData.id, {
+          title,
+          instructions,
+          skillType,
+        });
+        toast.success('Cập nhật phần thi thành công');
+      } else {
+        await examApi.addSection(classId, examId, {
+          title,
+          instructions,
+          skillType,
+          orderIndex: 0 // Backend will handle the exact order or we just pass 0 for now
+        });
+        toast.success('Thêm phần thi thành công');
+      }
       setTitle('');
       setInstructions('');
       setSkillType('READING');
@@ -50,7 +78,7 @@ export function AddSectionModal({ classId, examId, isOpen, onClose, onSuccess }:
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h2 className="modal-title">Thêm Phần Thi Mới</h2>
+          <h2 className="modal-title">{initialData ? 'Sửa Phần Thi' : 'Thêm Phần Thi Mới'}</h2>
           <button type="button" className="modal-close" onClick={onClose}>
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -114,15 +142,23 @@ export function AddSectionModal({ classId, examId, isOpen, onClose, onSuccess }:
           </div>
 
           <div className="form-group">
-            <label className="form-label">Hướng dẫn làm bài (Tùy chọn)</label>
+            <label className="form-label">
+              {skillType === 'READING' ? 'Đoạn văn đọc hiểu (Passage) / Hướng dẫn' : 'Hướng dẫn làm bài (Tùy chọn)'}
+            </label>
             <textarea
               className="form-textarea"
-              placeholder="Nhập hướng dẫn cho học sinh..."
+              placeholder={skillType === 'READING' ? 'Nhập đoạn văn dài để học sinh đọc hiểu...' : 'Nhập hướng dẫn cho học sinh...'}
               value={instructions}
               onChange={e => setInstructions(e.target.value)}
               disabled={isSubmitting}
-              rows={3}
+              rows={skillType === 'READING' ? 6 : 3}
             />
+            {skillType === 'LISTENING' && (
+              <p style={{ marginTop: '8px', fontSize: '12px', color: 'var(--color-primary)' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '14px', verticalAlign: 'middle', marginRight: '4px' }}>info</span>
+                Sau khi tạo phần thi, hãy bấm "Đính kèm file âm thanh / tài liệu" ở màn hình chi tiết để tải file Audio (MP3) lên.
+              </p>
+            )}
           </div>
 
           </div>
@@ -130,7 +166,7 @@ export function AddSectionModal({ classId, examId, isOpen, onClose, onSuccess }:
           <div className="modal-footer">
             <button type="button" className="teacher-btn-outline" onClick={onClose} disabled={isSubmitting}>Hủy</button>
             <button type="submit" className="teacher-btn-primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Đang lưu...' : 'Lưu phần thi'}
+              {isSubmitting ? 'Đang lưu...' : (initialData ? 'Cập nhật' : 'Lưu phần thi')}
             </button>
           </div>
         </form>

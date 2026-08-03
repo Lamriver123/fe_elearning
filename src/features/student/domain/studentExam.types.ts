@@ -28,6 +28,7 @@ export type StudentExamSection = {
   skillType: 'READING' | 'LISTENING' | 'SPEAKING' | 'WRITING';
   orderIndex: number;
   questions: StudentQuestion[];
+  files?: any[];
 };
 
 export type StudentQuestion = {

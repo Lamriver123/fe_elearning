@@ -14,6 +14,10 @@ export const examApi = {
     return httpClient.post(`/classes/${classId}/exams`, payload) as Promise<Exam>;
   },
 
+  updateExam: async (classId: string, examId: string, payload: any): Promise<Exam> => {
+    return httpClient.patch(`/classes/${classId}/exams/${examId}`, payload) as Promise<Exam>;
+  },
+
   publishExam: async (classId: string, examId: string): Promise<void> => {
     return httpClient.patch(`/classes/${classId}/exams/${examId}/publish`) as Promise<void>;
   },
@@ -38,8 +42,24 @@ export const examApi = {
     return httpClient.post(`/classes/${classId}/exams/${examId}/sections`, payload) as Promise<any>;
   },
 
+  updateSection: async (classId: string, examId: string, sectionId: string, payload: any): Promise<any> => {
+    return httpClient.patch(`/classes/${classId}/exams/${examId}/sections/${sectionId}`, payload) as Promise<any>;
+  },
+
+  deleteSection: async (classId: string, examId: string, sectionId: string): Promise<void> => {
+    return httpClient.delete(`/classes/${classId}/exams/${examId}/sections/${sectionId}`) as Promise<void>;
+  },
+
   addQuestion: async (classId: string, examId: string, sectionId: string, payload: any): Promise<any> => {
     return httpClient.post(`/classes/${classId}/exams/${examId}/sections/${sectionId}/questions`, payload) as Promise<any>;
+  },
+
+  updateQuestion: async (classId: string, examId: string, sectionId: string, questionId: string, payload: any): Promise<any> => {
+    return httpClient.patch(`/classes/${classId}/exams/${examId}/sections/${sectionId}/questions/${questionId}`, payload) as Promise<any>;
+  },
+
+  deleteQuestion: async (classId: string, examId: string, sectionId: string, questionId: string): Promise<void> => {
+    return httpClient.delete(`/classes/${classId}/exams/${examId}/sections/${sectionId}/questions/${questionId}`) as Promise<void>;
   },
 
   uploadExamFile: async (classId: string, examId: string, file: Blob, purpose: string, sectionId?: string, questionId?: string): Promise<any> => {
@@ -49,8 +69,10 @@ export const examApi = {
     if (sectionId) formData.append('sectionId', sectionId);
     if (questionId) formData.append('questionId', questionId);
 
-    return httpClient.post(`/classes/${classId}/exams/${examId}/files`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    }) as Promise<any>;
-  }
+    return httpClient.post(`/classes/${classId}/exams/${examId}/files`, formData) as Promise<any>;
+  },
+
+  deleteFile: async (classId: string, examId: string, fileId: string): Promise<void> => {
+    return httpClient.delete(`/classes/${classId}/exams/${examId}/files/${fileId}`) as Promise<void>;
+  },
 };
