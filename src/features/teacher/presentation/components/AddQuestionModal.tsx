@@ -186,8 +186,8 @@ export function AddQuestionModal({ classId, examId, sectionId, isOpen, initialDa
                 </button>
                 <button 
                   type="button"
-                  className={`custom-select-btn ${questionType === 'SPEAKING' ? 'active' : ''}`}
-                  onClick={() => setQuestionType('SPEAKING')}
+                  className={`custom-select-btn ${questionType === 'AUDIO_RESPONSE' ? 'active' : ''}`}
+                  onClick={() => setQuestionType('AUDIO_RESPONSE')}
                   disabled={isSubmitting}
                   style={{ minWidth: '90px' }}
                 >

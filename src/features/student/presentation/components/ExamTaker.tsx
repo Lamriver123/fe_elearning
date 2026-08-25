@@ -16,30 +16,68 @@ export function ExamTaker({ classId }: { classId: string }) {
   const { exam, isLoading, error } = useStudentExamDetail(classId, examId!);
   
   const [answers, setAnswers] = useState<AnswersState>({});
-  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [timeLeft, setTimeLeft] = useState<number>(-1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const timerRef = useRef<number | ReturnType<typeof setInterval> | null>(null);
+  
+  // Use ref to hold latest answers for auto-submit inside setInterval closure
+  const answersRef = useRef<AnswersState>({});
 
-  // Initialize time
+  // Initialize time and restore cached answers
   useEffect(() => {
-    if (exam && timeLeft === 0 && exam.classSettings?.durationMinutes) {
-      setTimeLeft(exam.classSettings.durationMinutes * 60);
+    if (exam && !isLoading && classId && examId) {
+      studentExamApi.startExam(classId, examId).then((res) => {
+        if (res.isSubmitted) {
+          toast.error("Bài thi này đã được nộp!");
+          navigate(`/student/courses/${classId}/exams`);
+          return;
+        }
+
+        const storageKeyAnswers = `exam_answers_${classId}_${examId}`;
+        const cachedAnswersStr = localStorage.getItem(storageKeyAnswers);
+        let mergedAnswers = { ...(res.autoSavedAnswers || {}) };
+        
+        if (cachedAnswersStr) {
+          try {
+            mergedAnswers = { ...mergedAnswers, ...JSON.parse(cachedAnswersStr) };
+          } catch (e) {}
+        }
+        setAnswers(mergedAnswers);
+        answersRef.current = mergedAnswers;
+
+        if (exam.classSettings?.durationMinutes) {
+          const startTimestamp = new Date(res.startTime).getTime();
+          const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
+          const remaining = (exam.classSettings.durationMinutes * 60) - elapsed;
+          if (remaining <= 0) {
+             setTimeLeft(0);
+          } else {
+             setTimeLeft(remaining);
+          }
+        }
+      }).catch(err => {
+        console.error(err);
+      });
     }
-  }, [exam]);
+  }, [exam, isLoading, classId, examId, navigate]);
 
   // Timer logic
   useEffect(() => {
-    if (exam?.classSettings?.durationMinutes && timeLeft > 0 && !isSubmitting) {
-      timerRef.current = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current!);
-            handleAutoSubmit();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+    if (exam?.classSettings?.durationMinutes && !isSubmitting) {
+      if (timeLeft === 0) {
+        handleAutoSubmit();
+      } else if (timeLeft > 0) {
+        timerRef.current = setInterval(() => {
+          setTimeLeft(prev => {
+            if (prev <= 1) {
+              clearInterval(timerRef.current!);
+              handleAutoSubmit();
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      }
     }
 
     return () => {
@@ -48,15 +86,28 @@ export function ExamTaker({ classId }: { classId: string }) {
   }, [exam, timeLeft, isSubmitting]);
 
   const handleAutoSubmit = () => {
-    toast('Hết giờ làm bài! Hệ thống đang tự động nộp bài...', { icon: '⏳' });
+    toast('Hết giờ làm bài! Hệ thống đang tự động nộp bài...', { icon: '⏳', id: 'auto-submit' });
     handleSubmit(new Event('submit') as any, true);
   };
 
   const handleAnswerChange = (questionId: string, value: any) => {
-    setAnswers(prev => ({
-      ...prev,
-      [questionId]: value
-    }));
+    setAnswers(prev => {
+      const newAnswers = { ...prev, [questionId]: value };
+      answersRef.current = newAnswers;
+      
+      // Save string answers to localStorage & Backend
+      const stringAnswers: Record<string, string> = {};
+      Object.entries(newAnswers).forEach(([k, v]) => {
+        if (typeof v === 'string') stringAnswers[k] = v;
+      });
+      localStorage.setItem(`exam_answers_${classId}_${examId}`, JSON.stringify(stringAnswers));
+      
+      if (classId && examId) {
+        studentExamApi.autoSaveExam(classId, examId, stringAnswers).catch(() => {});
+      }
+      
+      return newAnswers;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent, isAutoSubmit = false) => {
@@ -78,14 +129,14 @@ export function ExamTaker({ classId }: { classId: string }) {
 
       for (const section of exam.sections) {
         for (const q of section.questions) {
-          const val = answers[q.id];
+          const val = answersRef.current[q.id];
           if (val === undefined || val === null) continue;
 
           if (q.questionType === 'MULTIPLE_CHOICE') {
             formattedAnswers.push({ questionId: q.id, selectedOptionId: val as string });
           } else if (q.questionType === 'ESSAY') {
             formattedAnswers.push({ questionId: q.id, textAnswer: val as string });
-          } else if (q.questionType === 'SPEAKING') {
+          } else if (q.questionType === 'AUDIO_RESPONSE') {
             // Upload audio blob first
             toast.loading(`Đang tải lên audio câu hỏi ${q.orderIndex}...`, { id: toastId });
             const audioUrl = await studentExamApi.uploadAudio(classId, examId, val as Blob);
@@ -96,6 +147,10 @@ export function ExamTaker({ classId }: { classId: string }) {
 
       toast.loading('Đang nộp bài...', { id: toastId });
       const res = await studentExamApi.submitExam(classId, examId, { answers: formattedAnswers });
+      
+      // Clear localStorage after successful submit
+      localStorage.removeItem(`exam_answers_${classId}_${examId}`);
+      localStorage.removeItem(`exam_startTime_${classId}_${examId}`);
       
       toast.success(res.message, { id: toastId });
       

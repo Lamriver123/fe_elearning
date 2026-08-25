@@ -59,7 +59,7 @@ export function QuestionRenderer({ question, index, value, onChange }: QuestionR
         />
       )}
 
-      {question.questionType === 'SPEAKING' && (
+      {question.questionType === 'AUDIO_RESPONSE' && (
         <AudioRecorder value={value} onChange={onChange} />
       )}
     </div>

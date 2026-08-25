@@ -149,7 +149,7 @@ export function SubmissionGrader() {
                 </div>
               )}
 
-              {ans.question.questionType === 'SPEAKING' && ans.fileUrl && (
+              {ans.question.questionType === 'AUDIO_RESPONSE' && ans.fileUrl && (
                 <div style={{ marginBottom: '16px' }}>
                   <audio controls src={ans.fileUrl} style={{ width: '100%' }} />
                 </div>

@@ -155,7 +155,7 @@ export function StudentExamResult({ classId }: { classId: string }) {
                     </div>
                   )}
 
-                  {q.questionType === 'SPEAKING' && ans?.fileUrl && (
+                  {q.questionType === 'AUDIO_RESPONSE' && ans?.fileUrl && (
                     <div style={{ marginBottom: '16px' }}>
                       <audio controls src={ans.fileUrl} style={{ width: '100%' }} />
                     </div>

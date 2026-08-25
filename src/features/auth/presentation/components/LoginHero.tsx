@@ -7,7 +7,7 @@ export function LoginHero() {
       <div className="login-hero__shade" aria-hidden="true" />
       <div className="login-hero__content">
         <p className="login-hero__eyebrow">E-learning Platform</p>
-        <h2 className="login-hero__title">Học tập mỗi ngày, tiến bộ rõ ràng.</h2>
+        <h2 className="login-hero__title">Học tập mỗi ngày, <br /> tiến bộ mỗi ngày.</h2>
       </div>
     </aside>
   )

@@ -34,7 +34,7 @@ export type StudentExamSection = {
 export type StudentQuestion = {
   id: string;
   content: string;
-  questionType: 'MULTIPLE_CHOICE' | 'ESSAY' | 'SPEAKING';
+  questionType: 'MULTIPLE_CHOICE' | 'ESSAY' | 'AUDIO_RESPONSE';
   points: number;
   options?: { id: string; content: string }[]; // Options for multiple choice (no isCorrect field!)
   orderIndex: number;
