@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
 import { toast } from 'react-hot-toast';
-import { httpClient } from '../../../../shared/lib/httpClient';
-import { ApiError } from '../../../../shared/lib/httpClient.js';
+import { confirmTeacherExamExcelImport, previewTeacherExamExcelImport } from '../../application/examUseCases';
+import type { ExcelImportPreview } from '../../domain/exam.types';
+import { handleApiError } from '../../../../shared/lib/handleApiError';
 
 type ImportExcelModalProps = {
   examId: string;
@@ -13,7 +14,7 @@ type ImportExcelModalProps = {
 export function ImportExcelModal({ examId, isOpen, onClose, onSuccess }: ImportExcelModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [previewData, setPreviewData] = useState<any>(null);
+  const [previewData, setPreviewData] = useState<ExcelImportPreview | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -30,19 +31,13 @@ export function ImportExcelModal({ examId, isOpen, onClose, onSuccess }: ImportE
       return;
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
       setIsUploading(true);
-      const res = await httpClient.post<any>('/exams/import/excel/preview', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await previewTeacherExamExcelImport(file);
       setPreviewData(res);
       toast.success('Phân tích file thành công!');
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : 'Lỗi khi phân tích file Excel';
-      toast.error(message);
+      toast.error(handleApiError(err, 'Lỗi khi phân tích file Excel'));
     } finally {
       setIsUploading(false);
     }
@@ -52,16 +47,12 @@ export function ImportExcelModal({ examId, isOpen, onClose, onSuccess }: ImportE
     if (!previewData) return;
     try {
       setIsUploading(true);
-      await httpClient.post('/exams/import/excel/confirm', {
-        examId,
-        sections: previewData.sections
-      });
+      await confirmTeacherExamExcelImport(examId, previewData.sections);
       toast.success('Import đề thi thành công!');
       onSuccess();
       onClose();
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : 'Lỗi khi lưu đề thi';
-      toast.error(message);
+      toast.error(handleApiError(err, 'Lỗi khi lưu đề thi'));
     } finally {
       setIsUploading(false);
     }
@@ -75,20 +66,20 @@ export function ImportExcelModal({ examId, isOpen, onClose, onSuccess }: ImportE
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" style={{ maxWidth: '800px', width: '90%', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+      <div className="modal-content modal-content--wide" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">Import Đề Thi từ Excel</h2>
-          <button type="button" className="modal-close" onClick={onClose}>
-            <span className="material-symbols-outlined">close</span>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="Đóng">
+            <span className="material-symbols-outlined" aria-hidden="true">close</span>
           </button>
         </div>
         
-        <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+        <div className="modal-body modal-body--scroll">
           {!previewData ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ padding: '16px', backgroundColor: 'var(--color-surface-soft)', borderRadius: '8px' }}>
-                <p style={{ margin: '0 0 8px 0', fontWeight: 600 }}>Hướng dẫn định dạng file Excel:</p>
-                <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--color-muted)', fontSize: '14px' }}>
+            <div className="import-modal__setup">
+              <div className="import-modal__guide">
+                <p className="import-modal__guide-title">Hướng dẫn định dạng file Excel:</p>
+                <ul className="import-modal__guide-list">
                   <li>Dòng 1: Tiêu đề cột (Bỏ qua khi đọc)</li>
                   <li>Cột A (1): Tên phần thi (Section Title)</li>
                   <li>Cột B (2): Hướng dẫn phần thi (Instructions)</li>
@@ -99,7 +90,7 @@ export function ImportExcelModal({ examId, isOpen, onClose, onSuccess }: ImportE
                   <li>Cột J (10): Loại câu hỏi (MULTIPLE_CHOICE, ESSAY...)</li>
                   <li>Cột K (11): Điểm (Points)</li>
                 </ul>
-                <a href="#" style={{ display: 'inline-block', marginTop: '12px', color: 'var(--color-primary)', textDecoration: 'underline', fontSize: '14px' }}>Tải file mẫu (Template)</a>
+                <a href="#" className="import-modal__template-link">Tải file mẫu (Template)</a>
               </div>
               
               <div className="form-group">
@@ -109,39 +100,38 @@ export function ImportExcelModal({ examId, isOpen, onClose, onSuccess }: ImportE
                   accept=".xlsx, .xls"
                   onChange={handleFileChange}
                   ref={fileInputRef}
-                  className="form-input"
-                  style={{ padding: '8px' }}
+                  className="form-input import-modal__file-input"
                 />
               </div>
             </div>
           ) : (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ margin: 0 }}>Xem trước dữ liệu import</h3>
-                <button className="teacher-btn-outline" onClick={handleReset} style={{ padding: '4px 12px', fontSize: '14px' }}>
+              <div className="import-modal__preview-head">
+                <h3 className="import-modal__preview-title">Xem trước dữ liệu import</h3>
+                <button className="teacher-btn-outline import-modal__reset" onClick={handleReset}>
                   Chọn file khác
                 </button>
               </div>
               
-              {previewData.sections.map((sec: any, sIdx: number) => (
-                <div key={sIdx} style={{ marginBottom: '24px', border: '1px solid var(--color-border)', padding: '16px', borderRadius: '8px' }}>
-                  <h4 style={{ margin: '0 0 8px 0' }}>Phần {sIdx + 1}: {sec.title}</h4>
-                  <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: 'var(--color-muted)' }}>Kỹ năng: {sec.skillType}</p>
+              {previewData.sections.map((sec, sIdx) => (
+                <div key={`${sec.title}-${sIdx}`} className="import-modal__section">
+                  <h4 className="import-modal__section-title">Phần {sIdx + 1}: {sec.title}</h4>
+                  <p className="import-modal__section-meta">Kỹ năng: {sec.skillType}</p>
                   
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {sec.questions.map((q: any, qIdx: number) => (
-                      <div key={qIdx} style={{ backgroundColor: 'var(--color-surface-soft)', padding: '12px', borderRadius: '8px' }}>
-                        <p style={{ margin: '0 0 8px 0', fontWeight: 500 }}>Câu {qIdx + 1}: {q.content}</p>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                          {q.options?.map((opt: any, oIdx: number) => (
-                            <div key={oIdx} style={{ 
-                              padding: '8px', 
-                              backgroundColor: opt.isCorrect ? 'rgba(76,175,80,0.1)' : 'var(--color-surface)',
-                              border: opt.isCorrect ? '1px solid #4caf50' : '1px solid var(--color-border)',
-                              borderRadius: '4px',
-                              fontSize: '14px'
-                            }}>
-                              {opt.content} {opt.isCorrect && '✅'}
+                  <div className="import-modal__question-list">
+                    {sec.questions.map((q, qIdx) => (
+                      <div key={`${q.content}-${qIdx}`} className="import-modal__question">
+                        <p className="import-modal__question-title">Câu {qIdx + 1}: {q.content}</p>
+                        <div className="import-modal__option-grid">
+                          {q.options?.map((opt, oIdx) => (
+                            <div
+                              key={`${opt.content}-${oIdx}`}
+                              className={`import-modal__option ${opt.isCorrect ? 'import-modal__option--correct' : ''}`}
+                            >
+                              <span>{opt.content}</span>
+                              {opt.isCorrect && (
+                                <span className="material-symbols-outlined import-modal__option-check" aria-hidden="true">check_circle</span>
+                              )}
                             </div>
                           ))}
                         </div>

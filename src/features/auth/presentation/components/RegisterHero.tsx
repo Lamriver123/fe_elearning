@@ -5,7 +5,7 @@ export function RegisterHero() {
       <div className="login-hero__shade" aria-hidden="true" />
       <div className="login-hero__content">
         <p className="login-hero__eyebrow">Bắt đầu hành trình của bạn</p>
-        <h2 className="login-hero__title" style={{ fontSize: '1.5rem' }}>Tham gia Ms Cheese E-learning để khám phá kiến thức vô tận.</h2>
+        <h2 className="login-hero__title login-hero__title--compact">Tham gia Ms Cheese E-learning để khám phá kiến thức vô tận.</h2>
       </div>
     </aside>
   )

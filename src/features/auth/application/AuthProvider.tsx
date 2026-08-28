@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { AuthSession, LoginCredentials } from '../domain/auth.types'
-import { authApi } from '../infrastructure/authApi'
+import { getAccountProfile, loginAccount, logoutAccount, refreshAccountSession } from './authUseCases'
 import {
   clearAuthSession,
   getAuthSession,
@@ -25,7 +25,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return null
     }
 
-    const tokens = await authApi.refresh(currentSession.refreshToken)
+    const tokens = await refreshAccountSession(currentSession.refreshToken)
     const refreshedSession = updateAuthTokens(tokens.accessToken, tokens.refreshToken)
 
     if (!refreshedSession) {
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       try {
-        const profile = await authApi.profile(storedSession.accessToken)
+        const profile = await getAccountProfile(storedSession.accessToken)
         const verifiedSession = { ...storedSession, user: profile }
         saveAuthSession(verifiedSession)
 
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         try {
           const refreshedSession = await refreshSession()
           if (refreshedSession) {
-            const profile = await authApi.profile(refreshedSession.accessToken)
+            const profile = await getAccountProfile(refreshedSession.accessToken)
             const verifiedSession = { ...refreshedSession, user: profile }
             saveAuthSession(verifiedSession)
 
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [refreshSession])
 
   const login = useCallback(async (credentials: LoginCredentials, remember: boolean) => {
-    const response = await authApi.login(credentials)
+    const response = await loginAccount(credentials)
     const nextSession: AuthSession = {
       user: response.user,
       accessToken: response.accessToken,
@@ -114,7 +114,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     try {
-      await authApi.logout(currentSession.accessToken)
+      await logoutAccount(currentSession.accessToken)
     } catch {
       // Local logout should still complete if the token is already invalid.
     }

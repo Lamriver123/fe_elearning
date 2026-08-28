@@ -9,7 +9,16 @@ export function ClassDetail() {
   const { classId } = useParams<{ classId: string }>();
   const location = useLocation();
   
-  if (!classId) return <div>Không tìm thấy lớp học</div>;
+  if (!classId) {
+    return (
+      <div className="teacher-content-container">
+        <div className="page-state page-state--error">
+          <span className="material-symbols-outlined page-state__icon page-state__icon--error" aria-hidden="true">error</span>
+          <p>Không tìm thấy lớp học</p>
+        </div>
+      </div>
+    );
+  }
 
   const tabs = [
     { id: 'info', label: 'Thông tin chung', path: `/teacher/classes/${classId}` },
@@ -26,40 +35,32 @@ export function ClassDetail() {
 
   return (
     <div className="teacher-content-container">
-      <div className="teacher-page-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
+      <div className="teacher-page-header">
         <div>
           <h1>Chi tiết lớp học</h1>
         </div>
       </div>
       
-      <div className="tabs-container" style={{ borderBottom: '1px solid var(--color-border)', marginBottom: '24px' }}>
-        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-          {tabs.map(tab => {
-            const isActive = currentTab === tab.id || (tab.id === 'info' && location.pathname === `/teacher/classes/${classId}`);
-            return (
-              <Link 
-                key={tab.id} 
-                to={tab.path}
-                style={{
-                  padding: '12px 0',
-                  color: isActive ? 'var(--color-primary)' : 'var(--color-muted)',
-                  fontWeight: isActive ? 600 : 400,
-                  borderBottom: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
-                  textDecoration: 'none',
-                  transition: 'all 0.2s'
-                }}
-              >
-                {tab.label}
-              </Link>
-            )
-          })}
-        </div>
+      <div className="teacher-tabs page-tabs" role="tablist" aria-label="Chi tiết lớp học">
+        {tabs.map(tab => {
+          const isActive = currentTab === tab.id || (tab.id === 'info' && location.pathname === `/teacher/classes/${classId}`);
+          return (
+            <Link 
+              key={tab.id} 
+              to={tab.path}
+              className={`page-tab ${isActive ? 'page-tab--active' : ''}`}
+            >
+              {tab.label}
+            </Link>
+          )
+        })}
       </div>
 
       <Routes>
         <Route path="/" element={
-          <div style={{ padding: '40px', textAlign: 'center', backgroundColor: 'var(--color-surface)', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
-            <h3>Tính năng "Thông tin chung" đang được phát triển</h3>
+          <div className="page-state">
+            <span className="material-symbols-outlined page-state__icon" aria-hidden="true">info</span>
+            <h3 className="page-state__title">Thông tin chung đang được phát triển</h3>
           </div>
         } />
         <Route path="exams" element={<ExamList classId={classId} />} />

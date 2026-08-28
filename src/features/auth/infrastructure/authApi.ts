@@ -8,8 +8,9 @@ import type {
   VerifyOtpCredentials,
   ResendOtpCredentials,
 } from '../domain/auth.types'
+import type { AuthRepository } from '../domain/authRepository.port'
 
-export const authApi = {
+export const authApi: AuthRepository = {
   register(credentials: RegisterCredentials) {
     return httpClient.post('/auth/register', credentials) as Promise<{ message: string }>
   },

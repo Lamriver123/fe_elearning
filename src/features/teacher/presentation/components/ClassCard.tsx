@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-hot-toast'
 import type { ClassInfo } from '../../domain/teacher.types'
 
 type ClassCardProps = {
@@ -34,9 +35,7 @@ export function ClassCard({ classInfo }: ClassCardProps) {
   const handleCopyCode = (e: React.MouseEvent) => {
     e.stopPropagation()
     navigator.clipboard.writeText(classInfo.inviteCode)
-    import('react-hot-toast').then(({ toast }) => {
-      toast.success('Đã copy mã lớp: ' + classInfo.inviteCode)
-    })
+    toast.success('Đã copy mã lớp: ' + classInfo.inviteCode)
   }
 
   const handleCardClick = () => {
@@ -44,7 +43,7 @@ export function ClassCard({ classInfo }: ClassCardProps) {
   }
 
   return (
-    <div className={cardClasses} onClick={handleCardClick} style={{ cursor: 'pointer' }}>
+    <div className={cardClasses} onClick={handleCardClick}>
       <div className="teacher-class-card__image-wrapper">
         {classInfo.poster ? (
           <img 
@@ -54,7 +53,7 @@ export function ClassCard({ classInfo }: ClassCardProps) {
           />
         ) : (
           <div className="teacher-class-card__placeholder">
-            <span className="material-symbols-outlined teacher-class-card__placeholder-icon">school</span>
+            <span className="material-symbols-outlined teacher-class-card__placeholder-icon" aria-hidden="true">school</span>
           </div>
         )}
         <div className="teacher-class-card__overlay"></div>
@@ -65,7 +64,7 @@ export function ClassCard({ classInfo }: ClassCardProps) {
           onClick={handleCopyCode}
           title="Nhấn để copy mã lớp"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>content_copy</span>
+          <span className="material-symbols-outlined teacher-class-card__badge-icon" aria-hidden="true">content_copy</span>
           {classInfo.inviteCode}
         </div>
 
@@ -85,7 +84,7 @@ export function ClassCard({ classInfo }: ClassCardProps) {
           {classInfo.studentsCount !== undefined && (
             <>
               <div className="teacher-class-card__info-item">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>group</span>
+                <span className="material-symbols-outlined teacher-class-card__info-icon" aria-hidden="true">group</span>
                 {classInfo.studentsCount} học sinh
               </div>
             </>
@@ -97,7 +96,7 @@ export function ClassCard({ classInfo }: ClassCardProps) {
           
           {classInfo.scheduleMock && (
             <div className="teacher-class-card__info-item">
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>schedule</span>
+              <span className="material-symbols-outlined teacher-class-card__info-icon" aria-hidden="true">schedule</span>
               {classInfo.scheduleMock}
             </div>
           )}
@@ -115,7 +114,7 @@ export function ClassCard({ classInfo }: ClassCardProps) {
           ) : (
             <button className="teacher-class-card__action">
               Vào lớp
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>
+              <span className="material-symbols-outlined teacher-class-card__action-icon" aria-hidden="true">arrow_forward</span>
             </button>
           )}
         </div>

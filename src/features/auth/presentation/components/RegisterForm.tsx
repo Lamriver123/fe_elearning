@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import type { FormEvent } from 'react'
 import { toast } from 'react-hot-toast'
 import { ApiError } from '../../../../shared/lib/httpClient'
-import { authApi } from '../../infrastructure/authApi'
+import { registerAccount } from '../../application/authUseCases'
 import { USER_ROLES, type UserRole } from '../../../../shared/constants/roles'
 import { FormField } from './FormField'
 import { PasswordField } from './PasswordField'
@@ -39,7 +39,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
     }
 
     try {
-      await authApi.register({
+      await registerAccount({
         userName: userName.trim(),
         fullName: fullName.trim(),
         email: email.trim(),
@@ -139,37 +139,34 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           </div>
           <div className="form-field">
             <label className="form-field__label">Giới tính</label>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', height: '50px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            <div className="gender-options">
+              <label className="gender-option">
                 <input
                   type="radio"
                   name="gender"
                   value="MALE"
                   checked={gender === 'MALE'}
                   onChange={() => setGender('MALE')}
-                  style={{ accentColor: 'var(--color-primary)' }}
                 />
                 <span>Nam</span>
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <label className="gender-option">
                 <input
                   type="radio"
                   name="gender"
                   value="FEMALE"
                   checked={gender === 'FEMALE'}
                   onChange={() => setGender('FEMALE')}
-                  style={{ accentColor: 'var(--color-primary)' }}
                 />
                 <span>Nữ</span>
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <label className="gender-option">
                 <input
                   type="radio"
                   name="gender"
                   value="OTHER"
                   checked={gender === 'OTHER'}
                   onChange={() => setGender('OTHER')}
-                  style={{ accentColor: 'var(--color-primary)' }}
                 />
                 <span>Khác</span>
               </label>
@@ -223,7 +220,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           </div>
         )}
 
-        <button className="primary-action" type="submit" disabled={isSubmitting} style={{ marginTop: '12px' }}>
+        <button className="primary-action" type="submit" disabled={isSubmitting}>
           <span>{isSubmitting ? 'Đang đăng ký...' : 'Đăng ký'}</span>
           <span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
         </button>

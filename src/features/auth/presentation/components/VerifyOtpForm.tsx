@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, type FormEvent, type KeyboardEvent, type ClipboardEvent } from 'react'
 import { toast } from 'react-hot-toast'
 import { ApiError } from '../../../../shared/lib/httpClient'
-import { authApi } from '../../infrastructure/authApi'
+import { resendAccountOtp, verifyAccountOtp } from '../../application/authUseCases'
 
 type VerifyOtpFormProps = {
   email: string
@@ -75,7 +75,7 @@ export function VerifyOtpForm({ email, onSuccess }: VerifyOtpFormProps) {
     setIsSubmitting(true)
 
     try {
-      await authApi.verifyOtp({
+      await verifyAccountOtp({
         email,
         otp: otpValue,
       })
@@ -99,7 +99,7 @@ export function VerifyOtpForm({ email, onSuccess }: VerifyOtpFormProps) {
     setErrorMessage(null)
     setResendMessage(null)
     try {
-      await authApi.resendOtp({ email })
+      await resendAccountOtp({ email })
       setResendMessage('Mã OTP mới đã được gửi.')
       toast.success('Mã OTP mới đã được gửi.')
       setTimeLeft(60)
@@ -128,7 +128,7 @@ export function VerifyOtpForm({ email, onSuccess }: VerifyOtpFormProps) {
       </div>
 
       <form className="login-form" onSubmit={handleSubmit}>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '16px' }}>
+        <div className="otp-inputs">
           {otp.map((digit, index) => (
             <input
               key={index}
@@ -140,26 +140,8 @@ export function VerifyOtpForm({ email, onSuccess }: VerifyOtpFormProps) {
               onChange={(e) => handleChange(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
               onPaste={handlePaste}
-              style={{
-                width: '48px',
-                height: '56px',
-                fontSize: '24px',
-                textAlign: 'center',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-control)',
-                backgroundColor: 'var(--color-surface)',
-                color: 'var(--color-text)',
-                outline: 'none',
-                transition: 'border-color 160ms ease, box-shadow 160ms ease',
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = 'var(--color-primary)'
-                e.target.style.boxShadow = '0 0 0 4px rgba(0, 100, 146, 0.12)'
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'var(--color-border)'
-                e.target.style.boxShadow = 'none'
-              }}
+              className="otp-input"
+              aria-label={`Chữ số OTP ${index + 1}`}
             />
           ))}
         </div>
@@ -174,7 +156,7 @@ export function VerifyOtpForm({ email, onSuccess }: VerifyOtpFormProps) {
         )}
         
         {resendMessage && (
-          <div className="form-alert" role="alert" aria-live="polite" style={{ backgroundColor: 'var(--color-primary-soft)', borderColor: 'var(--color-primary)', color: 'var(--color-primary-strong)' }}>
+          <div className="form-alert form-alert--info" role="alert" aria-live="polite">
             <span className="material-symbols-outlined" aria-hidden="true">
               info
             </span>
@@ -189,25 +171,16 @@ export function VerifyOtpForm({ email, onSuccess }: VerifyOtpFormProps) {
           </span>
         </button>
         
-        <div style={{ textAlign: 'center', marginTop: '8px' }}>
+        <div className="otp-resend">
           {timeLeft > 0 ? (
-            <p style={{ color: 'var(--color-muted)', fontSize: '0.88rem' }}>
+            <p>
               Bạn có thể yêu cầu gửi lại sau <strong>{formatTime(timeLeft)}</strong>
             </p>
           ) : (
             <button 
               type="button" 
               onClick={handleResendOtp}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--color-primary)',
-                fontFamily: 'var(--font-label)',
-                fontWeight: 600,
-                fontSize: '0.88rem',
-                cursor: 'pointer',
-                textDecoration: 'underline'
-              }}
+              className="otp-resend__button"
             >
               Gửi lại OTP
             </button>

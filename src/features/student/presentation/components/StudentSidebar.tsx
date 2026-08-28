@@ -18,10 +18,9 @@ export function StudentSidebar({ onLogout }: StudentSidebarProps) {
       <Link
         to="/student"
         className="student-sidebar__brand"
-        style={{ textDecoration: 'none' }}
       >
         <div className="student-sidebar__logo">
-          <span className="material-symbols-outlined">school</span>
+          <span className="material-symbols-outlined" aria-hidden="true">school</span>
         </div>
         <div>
           <h1 className="student-sidebar__title">Học sinh</h1>
@@ -36,17 +35,8 @@ export function StudentSidebar({ onLogout }: StudentSidebarProps) {
             to={item.path}
             className={({ isActive }) => `student-sidebar__nav-item ${isActive ? 'active' : ''}`}
           >
-            {({ isActive }) => (
-              <>
-                <span
-                  className="material-symbols-outlined"
-                  style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
-                >
-                  {item.icon}
-                </span>
-                <span>{item.name}</span>
-              </>
-            )}
+            <span className="material-symbols-outlined" aria-hidden="true">{item.icon}</span>
+            <span>{item.name}</span>
           </NavLink>
         ))}
       </nav>
@@ -54,10 +44,10 @@ export function StudentSidebar({ onLogout }: StudentSidebarProps) {
       <div className="student-sidebar__logout">
         <button
           onClick={() => void onLogout()}
-          className="student-sidebar__nav-item"
-          style={{ width: '100%', background: 'transparent', border: 'none', textAlign: 'left' }}
+          className="student-sidebar__nav-item student-sidebar__logout-button"
+          type="button"
         >
-          <span className="material-symbols-outlined">logout</span>
+          <span className="material-symbols-outlined" aria-hidden="true">logout</span>
           <span>Đăng xuất</span>
         </button>
       </div>

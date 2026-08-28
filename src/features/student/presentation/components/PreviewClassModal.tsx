@@ -28,14 +28,14 @@ export function PreviewClassModal({
               className="preview-modal__image"
             />
           ) : (
-            <span className="material-symbols-outlined" style={{ fontSize: '64px', color: 'var(--color-muted)' }}>
+            <span className="material-symbols-outlined preview-modal__placeholder-icon" aria-hidden="true">
               school
             </span>
           )}
           <div className="preview-modal__image-gradient"></div>
           
-          <button onClick={onClose} className="preview-modal__close-btn">
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
+          <button type="button" onClick={onClose} className="preview-modal__close-btn" aria-label="Đóng">
+            <span className="material-symbols-outlined" aria-hidden="true">close</span>
           </button>
         </div>
 
@@ -45,15 +45,16 @@ export function PreviewClassModal({
           </h2>
           
           <p className="preview-modal__teacher">
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>person</span>
+            <span className="material-symbols-outlined" aria-hidden="true">person</span>
             {classInfo.teacherName}
           </p>
 
           <div className="preview-modal__actions">
-            <button onClick={onClose} className="preview-modal__btn-cancel">
+            <button type="button" onClick={onClose} className="preview-modal__btn-cancel">
               Hủy
             </button>
             <button 
+              type="button"
               onClick={onJoin}
               disabled={isJoining}
               className="preview-modal__btn-join"
@@ -63,7 +64,7 @@ export function PreviewClassModal({
               ) : (
                 <>
                   Xin tham gia
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>
+                  <span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
                 </>
               )}
             </button>

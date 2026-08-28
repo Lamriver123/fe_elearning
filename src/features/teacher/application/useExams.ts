@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { examApi } from '../infrastructure/examApi.js';
 import type { Exam } from '../domain/exam.types.js';
 import { ApiError } from '../../../shared/lib/httpClient.js';
@@ -9,7 +9,9 @@ export function useExams(classId: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchExams = async () => {
+  const fetchExams = useCallback(async () => {
+    if (!classId) return;
+
     try {
       setIsLoading(true);
       setError(null);
@@ -22,13 +24,26 @@ export function useExams(classId: string) {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    if (classId) {
-      void fetchExams();
-    }
   }, [classId]);
 
-  return { exams, isLoading, error, refreshExams: fetchExams };
+  useEffect(() => {
+    void fetchExams();
+  }, [fetchExams]);
+
+  const deleteExam = useCallback(async (examId: string) => {
+    if (!classId) return false;
+
+    try {
+      await examApi.deleteExam(classId, examId);
+      toast.success('Đã xóa đề thi thành công');
+      await fetchExams();
+      return true;
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : 'Không thể xóa đề thi';
+      toast.error(message);
+      return false;
+    }
+  }, [classId, fetchExams]);
+
+  return { exams, isLoading, error, refreshExams: fetchExams, deleteExam };
 }

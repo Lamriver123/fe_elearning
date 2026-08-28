@@ -45,13 +45,11 @@ export function StudentClasses() {
 
   return (
     <div className="student-classes">
-      {/* Header */}
-      <div className="teacher-page-header" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px', margin: 0 }}>
+      <div className="student-classes__header">
         <h2>Lớp học của tôi</h2>
-        <p style={{ color: 'var(--color-muted)', margin: 0 }}>Tham gia và theo dõi các lớp học của bạn.</p>
+        <p>Tham gia và theo dõi các lớp học của bạn.</p>
       </div>
 
-      {/* Tabs & Join Form Row */}
       <div className="student-classes__tabs-row">
         <div className="student-classes__tabs">
           <button
@@ -76,7 +74,7 @@ export function StudentClasses() {
 
         {/* Small Join Form */}
         <form onSubmit={onSearchSubmit} className="student-classes__search-form">
-          <span className="material-symbols-outlined student-classes__search-icon">search</span>
+          <span className="material-symbols-outlined student-classes__search-icon" aria-hidden="true">search</span>
           <input
             type="text"
             placeholder="Nhập mã lớp..."
@@ -89,24 +87,31 @@ export function StudentClasses() {
             className="student-classes__search-btn"
             disabled={isJoining || !inviteCode.trim()}
           >
-            Tìm lớp
+            {isJoining ? 'Đang tìm' : 'Tìm lớp'}
           </button>
         </form>
       </div>
 
-      {/* Content */}
-      <div style={{ minHeight: '400px' }}>
+      <div className="student-classes__content">
         {isLoading ? (
-          <div className="student-classes__empty-state">
-            Đang tải dữ liệu...
+          <div className="student-classes__loading-grid" aria-label="Đang tải lớp học">
+            {[1, 2, 3].map((item) => (
+              <div key={item} className="skeleton-card" aria-hidden="true">
+                <div className="skeleton-thumb" />
+                <div className="skeleton-line skeleton-line--lg" />
+                <div className="skeleton-line skeleton-line--md" />
+                <div className="skeleton-chip" />
+              </div>
+            ))}
           </div>
         ) : error ? (
-          <div className="student-classes__empty-state" style={{ color: 'var(--color-error)' }}>
+          <div className="student-classes__empty-state page-state--error">
+            <span className="material-symbols-outlined page-state__icon page-state__icon--error" aria-hidden="true">error</span>
             {error}
           </div>
         ) : displayClasses.length === 0 ? (
           <div className="student-classes__empty-state">
-            <span className="material-symbols-outlined" style={{ fontSize: '64px', color: 'var(--color-muted-soft)', marginBottom: '16px' }}>
+            <span className="material-symbols-outlined student-classes__empty-icon" aria-hidden="true">
               {activeTab === 'APPROVED' ? 'school' : activeTab === 'INVITED' ? 'mail' : 'hourglass_empty'}
             </span>
             <p>

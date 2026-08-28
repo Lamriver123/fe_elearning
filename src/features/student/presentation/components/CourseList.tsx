@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { type Course } from '../../domain/student.types'
 
 type CourseListProps = {
@@ -9,7 +10,7 @@ export function CourseList({ courses }: CourseListProps) {
     <section className="student-courses">
       <div className="student-courses__header">
         <h3 className="student-courses__title">Lớp học của tôi</h3>
-        <a className="student-courses__link" href="/courses">Xem tất cả</a>
+        <Link className="student-courses__link" to="/student/courses">Xem tất cả</Link>
       </div>
       
       <div className="student-courses__list">
@@ -29,16 +30,13 @@ export function CourseList({ courses }: CourseListProps) {
                 {course.title}
               </h4>
               <p className="course-card__teacher">
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>person</span> 
+                <span className="material-symbols-outlined" aria-hidden="true">person</span> 
                 {course.teacher}
               </p>
               
               <div className="course-card__footer">
                 <div className="course-progress">
-                  <div 
-                    className="course-progress__bar" 
-                    style={{ width: `${course.progress}%` }}
-                  ></div>
+                  <progress className="course-progress__native" value={course.progress} max={100} aria-label={`Tiến độ ${course.progress}%`} />
                 </div>
                 <p className="course-card__meta">
                   Bài {course.completedLessons}/{course.totalLessons}

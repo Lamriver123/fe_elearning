@@ -1,8 +1,9 @@
 import { httpClient } from '../../../shared/lib/httpClient'
 import type { AuthUser } from '../../auth/domain/auth.types'
 import type { UpdateProfilePayload, ChangePasswordPayload } from '../domain/user.types'
+import type { UserRepository } from '../domain/userRepository.port'
 
-export const userApi = {
+export const userApi: UserRepository = {
   getProfile() {
     return httpClient.get('/users/me') as Promise<AuthUser>
   },

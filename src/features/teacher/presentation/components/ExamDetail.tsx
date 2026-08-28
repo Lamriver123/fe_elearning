@@ -1,8 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { examApi } from '../../infrastructure/examApi.js';
-import type { Exam } from '../../domain/exam.types.js';
-import { toast } from 'react-hot-toast';
+import { useState } from 'react';
+import { useExamDetail } from '../../application/useExamDetail.js';
+import type { ExamSection, Question } from '../../domain/exam.types.js';
 import { ImportExcelModal } from './ImportExcelModal.tsx';
 import { ExamSubmissions } from './ExamSubmissions.tsx';
 import { AddSectionModal } from './AddSectionModal.tsx';
@@ -10,12 +9,64 @@ import { AddQuestionModal } from './AddQuestionModal.tsx';
 import { UploadExamFileModal } from './UploadExamFileModal.tsx';
 import { EditExamInfoModal } from './EditExamInfoModal.tsx';
 
+function ExamDetailSkeleton() {
+  return (
+    <div
+      className="teacher-content-container exam-detail exam-detail-skeleton"
+      aria-label="Đang tải đề thi"
+      aria-live="polite"
+    >
+      <div className="teacher-page-header">
+        <div className="exam-detail-skeleton__intro" aria-hidden="true">
+          <span className="skeleton-chip" />
+          <span className="skeleton-line skeleton-line--lg" />
+          <span className="skeleton-line skeleton-line--md" />
+          <div className="exam-detail-skeleton__meta">
+            <span className="skeleton-chip" />
+            <span className="skeleton-chip" />
+          </div>
+        </div>
+        <div className="exam-detail-skeleton__actions" aria-hidden="true">
+          <span className="skeleton-chip" />
+          <span className="skeleton-chip" />
+        </div>
+      </div>
+
+      <div className="page-tabs exam-detail__tabs" aria-hidden="true">
+        <span className="skeleton-line skeleton-line--sm" />
+        <span className="skeleton-line skeleton-line--sm" />
+      </div>
+
+      <div className="exam-detail__panel" aria-hidden="true">
+        <div className="exam-detail__panel-header">
+          <span className="skeleton-line skeleton-line--md" />
+          <span className="skeleton-chip" />
+        </div>
+        {[1, 2].map((item) => (
+          <div key={item} className="exam-detail-skeleton__section section-card">
+            <div className="exam-detail__section-header">
+              <span className="skeleton-avatar" />
+              <span className="skeleton-line skeleton-line--md" />
+            </div>
+            <div className="exam-detail__section-body">
+              <div className="skeleton-line skeleton-line--lg" />
+              <div className="exam-detail-skeleton__questions">
+                <div className="skeleton-card" />
+                <div className="skeleton-card" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function ExamDetail() {
   const { classId, examId } = useParams<{ classId: string; examId: string }>();
   const navigate = useNavigate();
-  const [exam, setExam] = useState<Exam | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isPublishing, setIsPublishing] = useState(false);
+  const { exam, isLoading, isPublishing, refreshExam, publishExam, deleteSection, deleteQuestion, deleteFile } =
+    useExamDetail(classId, examId);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'content' | 'submissions'>('content');
 
@@ -29,118 +80,82 @@ export function ExamDetail() {
   const [activeSectionId, setActiveSectionId] = useState<string | undefined>(undefined);
 
   // Edit states
-  const [selectedSection, setSelectedSection] = useState<any>(null);
-  const [selectedQuestion, setSelectedQuestion] = useState<any>(null);
-
-  const fetchExamDetail = () => {
-    if (classId && examId) {
-      examApi.getExamDetail(classId, examId)
-        .then(setExam)
-        .catch(() => toast.error('Lỗi khi tải thông tin đề thi'))
-        .finally(() => setIsLoading(false));
-    }
-  };
-
-  useEffect(() => {
-    fetchExamDetail();
-  }, [classId, examId]);
+  const [selectedSection, setSelectedSection] = useState<ExamSection | null>(null);
+  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
 
   const handlePublish = async () => {
-    if (!classId || !examId) return;
-    try {
-      setIsPublishing(true);
-      await examApi.publishExam(classId, examId);
-      toast.success('Xuất bản đề thi thành công');
-      setExam(prev => prev ? { ...prev, status: 'PUBLISHED' } : null);
-    } catch (err) {
-      toast.error('Không thể xuất bản đề thi');
-    } finally {
-      setIsPublishing(false);
-    }
+    await publishExam();
   };
 
   const handleDeleteSection = async (sectionId: string) => {
     if (!window.confirm('Bạn có chắc muốn xóa phần thi này? Toàn bộ câu hỏi và file đính kèm bên trong sẽ bị xóa.')) return;
-    try {
-      await examApi.deleteSection(classId!, examId!, sectionId);
-      toast.success('Xóa phần thi thành công');
-      fetchExamDetail();
-    } catch (err) {
-      toast.error('Không thể xóa phần thi');
-    }
+    await deleteSection(sectionId);
   };
 
   const handleDeleteQuestion = async (sectionId: string, questionId: string) => {
     if (!window.confirm('Bạn có chắc muốn xóa câu hỏi này?')) return;
-    try {
-      await examApi.deleteQuestion(classId!, examId!, sectionId, questionId);
-      toast.success('Xóa câu hỏi thành công');
-      fetchExamDetail();
-    } catch (err) {
-      toast.error('Không thể xóa câu hỏi');
-    }
+    await deleteQuestion(sectionId, questionId);
   };
 
   const handleDeleteFile = async (fileId: string) => {
     if (!window.confirm('Bạn có chắc muốn xóa file này?')) return;
-    try {
-      await examApi.deleteFile(classId!, examId!, fileId);
-      toast.success('Xóa file thành công');
-      fetchExamDetail();
-    } catch (err) {
-      toast.error('Không thể xóa file');
-    }
+    await deleteFile(fileId);
   };
 
-  if (isLoading) return <div style={{ padding: '40px', textAlign: 'center' }}>Đang tải...</div>;
-  if (!exam) return <div style={{ padding: '40px', textAlign: 'center' }}>Không tìm thấy đề thi</div>;
+  if (isLoading) {
+    return <ExamDetailSkeleton />;
+  }
+
+  if (!exam) {
+    return (
+      <div className="teacher-content-container">
+        <div className="page-state page-state--error">
+          <span className="material-symbols-outlined page-state__icon page-state__icon--error" aria-hidden="true">error</span>
+          <p>Không tìm thấy đề thi</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="teacher-content-container">
+    <div className="teacher-content-container exam-detail">
       <div className="teacher-page-header">
         <div>
           <button 
-            className="teacher-btn-outline" 
-            style={{ marginBottom: '16px', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}
+            className="teacher-btn-outline back-button" 
+            type="button"
             onClick={() => navigate(`/teacher/classes/${classId}/exams`)}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
+            <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
             Trở lại danh sách
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <h1 style={{ margin: 0, fontSize: 'clamp(24px, 5vw, 32px)' }}>{exam.title}</h1>
-            <span style={{
-              padding: '4px 8px',
-              borderRadius: '12px',
-              fontSize: '14px',
-              fontWeight: 600,
-              backgroundColor: exam.status === 'PUBLISHED' ? 'rgba(76,175,80,0.1)' : 'rgba(255,152,0,0.1)',
-              color: exam.status === 'PUBLISHED' ? '#4caf50' : '#ff9800'
-            }}>
+          <div className="exam-detail__title-row">
+            <h1 className="exam-detail__title">{exam.title}</h1>
+            <span className={`status-pill ${exam.status === 'PUBLISHED' ? 'status-pill--published' : 'status-pill--draft'}`}>
               {exam.status === 'PUBLISHED' ? 'Đã xuất bản' : 'Bản nháp'}
             </span>
           </div>
-          {exam.description && <p style={{ marginTop: '12px', fontSize: '15px' }}>{exam.description}</p>}
-          <div style={{ marginTop: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: 'var(--color-muted)', backgroundColor: 'var(--color-surface-soft)', padding: '6px 12px', borderRadius: '8px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>timer</span>
+          {exam.description && <p className="exam-detail__description">{exam.description}</p>}
+          <div className="exam-detail__meta">
+            <span className="metric-pill">
+              <span className="material-symbols-outlined" aria-hidden="true">timer</span>
               {exam.classSettings?.durationMinutes ? `${exam.classSettings.durationMinutes} phút` : 'Không giới hạn thời gian'}
             </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: 'var(--color-muted)', backgroundColor: 'var(--color-surface-soft)', padding: '6px 12px', borderRadius: '8px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>construction</span>
+            <span className="metric-pill">
+              <span className="material-symbols-outlined" aria-hidden="true">construction</span>
               Cách tạo: {exam.createMethod === 'MANUAL' ? 'Thủ công' : exam.createMethod === 'FILE_UPLOAD' ? 'Đính kèm file' : 'Import Excel'}
             </span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '16px' }}>
+        <div className="exam-detail__actions page-action-row page-action-row--end">
           <button 
             className="teacher-btn-outline" 
-            style={{ padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            type="button"
             onClick={() => setIsEditInfoOpen(true)}
             title="Sửa thông tin đề thi"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span>
+            <span className="material-symbols-outlined" aria-hidden="true">edit</span>
             Sửa thông tin
           </button>
           
@@ -149,32 +164,33 @@ export function ExamDetail() {
               {exam.createMethod === 'FILE_UPLOAD' && (
                 <button 
                   className="teacher-btn-primary" 
-                  style={{ backgroundColor: '#ff9800', border: 'none' }}
+                  type="button"
                   onClick={() => {
                     setActiveSectionId(undefined);
                     setIsUploadFileOpen(true);
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>attach_file</span>
+                  <span className="material-symbols-outlined" aria-hidden="true">attach_file</span>
                   Đính kèm File Đề
                 </button>
               )}
               {exam.createMethod === 'EXCEL_IMPORT' && (
                 <button 
                   className="teacher-btn-primary" 
-                  style={{ backgroundColor: '#2196f3', border: 'none' }}
+                  type="button"
                   onClick={() => setIsImportModalOpen(true)}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>upload_file</span>
+                  <span className="material-symbols-outlined" aria-hidden="true">upload_file</span>
                   Import Excel
                 </button>
               )}
               <button 
                 className="teacher-btn-primary" 
+                type="button"
                 onClick={handlePublish}
                 disabled={isPublishing}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>publish</span>
+                <span className="material-symbols-outlined" aria-hidden="true">publish</span>
                 {isPublishing ? 'Đang xử lý...' : 'Xuất bản'}
               </button>
             </>
@@ -182,60 +198,47 @@ export function ExamDetail() {
         </div>
       </div>
 
-      <div style={{ marginTop: '24px', display: 'flex', gap: '12px', borderBottom: '1px solid var(--color-border)', flexWrap: 'wrap' }}>
+      <div className="exam-detail__tabs page-tabs" role="tablist" aria-label="Quản lý đề thi">
         <button 
-          style={{ 
-            padding: '12px 0', 
-            background: 'none', 
-            border: 'none', 
-            fontWeight: 600, 
-            cursor: 'pointer',
-            color: activeTab === 'content' ? 'var(--color-primary)' : 'var(--color-muted)',
-            borderBottom: activeTab === 'content' ? '2px solid var(--color-primary)' : '2px solid transparent'
-          }}
+          className={`page-tab ${activeTab === 'content' ? 'page-tab--active' : ''}`}
+          type="button"
           onClick={() => setActiveTab('content')}
         >
           Nội dung đề thi
         </button>
         <button 
-          style={{ 
-            padding: '12px 0', 
-            background: 'none', 
-            border: 'none', 
-            fontWeight: 600, 
-            cursor: 'pointer',
-            color: activeTab === 'submissions' ? 'var(--color-primary)' : 'var(--color-muted)',
-            borderBottom: activeTab === 'submissions' ? '2px solid var(--color-primary)' : '2px solid transparent'
-          }}
+          className={`page-tab ${activeTab === 'submissions' ? 'page-tab--active' : ''}`}
+          type="button"
           onClick={() => setActiveTab('submissions')}
         >
           Bài nộp học sinh
         </button>
       </div>
 
-      <div style={{ marginTop: '32px', backgroundColor: 'var(--color-surface)', borderRadius: '12px', border: '1px solid var(--color-border)', padding: '24px' }}>
+      <div className="exam-detail__panel">
         {activeTab === 'content' && (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h3>Nội dung đề thi</h3>
+            <div className="exam-detail__panel-header">
+              <h3 className="exam-detail__panel-title">Nội dung đề thi</h3>
               {exam.createMethod === 'MANUAL' && (
                 <button 
                   className="teacher-btn-outline"
+                  type="button"
                   onClick={() => {
                     setSelectedSection(null);
                     setIsAddSectionOpen(true);
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
+                  <span className="material-symbols-outlined" aria-hidden="true">add</span>
                   Thêm phần thi (Section)
                 </button>
               )}
             </div>
 
             {(!exam.sections || exam.sections.length === 0) ? (
-              <div style={{ padding: '60px 20px', textAlign: 'center', backgroundColor: 'var(--color-surface-soft)', borderRadius: '12px' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '64px', color: 'var(--color-muted-soft)', marginBottom: '16px' }}>post_add</span>
-                <p style={{ color: 'var(--color-muted)' }}>
+              <div className="page-state page-state--soft">
+                <span className="material-symbols-outlined page-state__icon" aria-hidden="true">post_add</span>
+                <p>
                   {exam.createMethod === 'MANUAL' && 'Đề thi này chưa có phần thi nào. Hãy bấm "Thêm phần thi" để bắt đầu soạn đề.'}
                   {exam.createMethod === 'FILE_UPLOAD' && 'Vui lòng đính kèm File đề thi (PDF/Word) ở góc trên bên phải.'}
                   {exam.createMethod === 'EXCEL_IMPORT' && 'Hãy Import file Excel để nạp danh sách câu hỏi.'}
@@ -244,70 +247,74 @@ export function ExamDetail() {
             ) : (
               <div>
                 {exam.sections.map((section, idx) => (
-                  <div key={section.id} style={{ marginBottom: '32px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border-soft)', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.04)' }}>
-                    <div style={{ backgroundColor: 'var(--color-primary-soft)', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border-soft)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>category</span>
+                  <div key={section.id} className="exam-detail__section section-card">
+                    <div className="exam-detail__section-header">
+                      <div className="exam-detail__section-title-wrap">
+                        <span className="material-symbols-outlined" aria-hidden="true">category</span>
                         <div>
-                          <h4 style={{ margin: '0', fontSize: '18px', color: 'var(--color-primary-strong)' }}>Phần {idx + 1}: {section.title}</h4>
-                          {section.skillType && <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-primary)' }}>{section.skillType}</span>}
+                          <h4 className="exam-detail__section-title">Phần {idx + 1}: {section.title}</h4>
+                          {section.skillType && <span className="exam-detail__section-skill">{section.skillType}</span>}
                         </div>
                       </div>
                       
-                      <div style={{ display: 'flex', gap: '8px' }}>
+                      <div className="exam-detail__section-actions">
                         <button 
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', padding: '8px', borderRadius: '8px' }}
+                          className="icon-action"
+                          type="button"
                           onClick={() => {
                             setSelectedSection(section);
                             setIsAddSectionOpen(true);
                           }}
                           title="Sửa phần thi"
                         >
-                          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span>
+                          <span className="material-symbols-outlined" aria-hidden="true">edit</span>
                         </button>
                         <button 
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-error)', display: 'flex', alignItems: 'center', padding: '8px', borderRadius: '8px' }}
+                          className="icon-action icon-action--danger"
+                          type="button"
                           onClick={() => handleDeleteSection(section.id)}
                           title="Xóa phần thi"
                         >
-                          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>delete</span>
+                          <span className="material-symbols-outlined" aria-hidden="true">delete</span>
                         </button>
                       </div>
                     </div>
 
-                    <div style={{ padding: '24px' }}>
+                    <div className="exam-detail__section-body">
                       {/* Render attached files for this section */}
                       {section.files && section.files.length > 0 && (
-                        <div style={{ marginBottom: '24px' }}>
-                          {section.files.map((f: any) => (
-                            <div key={f.id} style={{ marginBottom: '12px' }}>
+                        <div className="exam-detail__file-list">
+                          {section.files.map((f) => (
+                            <div key={f.id}>
                               {f.fileType === 'AUDIO' ? (
-                                <div style={{ backgroundColor: 'var(--color-surface-soft)', padding: '16px', borderRadius: '12px', border: '1px solid var(--color-border)', position: 'relative' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                                    <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>audio_file</span>
-                                    <span style={{ fontWeight: 600 }}>{f.fileName}</span>
+                                <div className="exam-detail__file-item exam-detail__file-item--audio">
+                                  <div className="exam-detail__audio-head">
+                                    <span className="material-symbols-outlined" aria-hidden="true">audio_file</span>
+                                    <span className="exam-detail__file-name">{f.fileName}</span>
                                     <button 
-                                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-error)', marginLeft: 'auto', padding: '4px' }}
+                                      className="icon-action icon-action--danger"
+                                      type="button"
                                       onClick={() => handleDeleteFile(f.id)}
                                       title="Xóa file này"
                                     >
-                                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
+                                      <span className="material-symbols-outlined" aria-hidden="true">delete</span>
                                     </button>
                                   </div>
-                                  <audio controls src={f.fileUrl} style={{ width: '100%' }} />
+                                  <audio controls src={f.fileUrl} />
                                 </div>
                               ) : (
-                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: 'var(--color-surface-soft)', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                                  <span className="material-symbols-outlined">attach_file</span>
-                                  <a href={f.fileUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 500 }}>
+                                <div className="exam-detail__file-item">
+                                  <span className="material-symbols-outlined" aria-hidden="true">attach_file</span>
+                                  <a className="exam-detail__file-link" href={f.fileUrl} target="_blank" rel="noopener noreferrer">
                                     {f.fileName}
                                   </a>
                                   <button 
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-error)', marginLeft: '8px', padding: '0', display: 'flex' }}
+                                    className="icon-action icon-action--danger"
+                                    type="button"
                                     onClick={() => handleDeleteFile(f.id)}
                                     title="Xóa file này"
                                   >
-                                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+                                    <span className="material-symbols-outlined" aria-hidden="true">close</span>
                                   </button>
                                 </div>
                               )}
@@ -317,31 +324,32 @@ export function ExamDetail() {
                       )}
 
                       {section.instructions && (
-                        <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: 'var(--color-surface-soft)', borderLeft: '4px solid var(--color-border)', borderRadius: '4px', color: 'var(--color-text)' }}>
-                          <span style={{ fontWeight: 600, display: 'block', marginBottom: '8px', color: 'var(--color-muted)' }}>
+                        <div className="exam-detail__instructions">
+                          <span className="exam-detail__instructions-label">
                             {section.skillType === 'READING' ? 'Nội dung bài đọc:' : 'Hướng dẫn:'}
                           </span>
-                          <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.8' }}>{section.instructions}</div>
+                          <div className="exam-detail__instructions-content">{section.instructions}</div>
                         </div>
                       )}
                       
                       {/* Liệt kê câu hỏi của phần thi */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                      <div className="exam-detail__questions">
                         {section.questions?.map((q, qIdx) => (
-                          <div key={q.id} style={{ padding: '24px', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '12px', position: 'relative', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-                              <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', flex: 1, minWidth: '200px' }}>
-                                <div style={{ backgroundColor: 'var(--color-primary)', color: 'white', padding: '4px 12px', borderRadius: '16px', fontWeight: 700, fontSize: '13px', whiteSpace: 'nowrap' }}>Câu {qIdx + 1}</div>
-                                <div style={{ fontWeight: 500, fontSize: '16px', lineHeight: '1.6', marginTop: '2px' }}>
-                                  {q.content.split('\n').map((line, i) => <p key={i} style={{ margin: '0 0 4px 0' }}>{line}</p>)}
+                          <div key={q.id} className="exam-detail__question">
+                            <div className="exam-detail__question-header">
+                              <div className="exam-detail__question-main">
+                                <div className="exam-detail__question-index">Câu {qIdx + 1}</div>
+                                <div className="exam-detail__question-content">
+                                  {q.content.split('\n').map((line, i) => <p key={i}>{line}</p>)}
                                 </div>
                               </div>
-                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                <span style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, backgroundColor: 'var(--color-surface-soft)', color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>{q.questionType}</span>
-                                <span style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, backgroundColor: 'rgba(76,175,80,0.1)', color: '#4caf50', whiteSpace: 'nowrap' }}>{q.points} điểm</span>
+                              <div className="exam-detail__question-tools">
+                                <span className="metric-pill">{q.questionType}</span>
+                                <span className="status-pill status-pill--success">{q.points} điểm</span>
                                 
                                 <button 
-                                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', padding: '4px' }}
+                                  className="icon-action"
+                                  type="button"
                                   onClick={() => {
                                     setActiveSectionId(section.id);
                                     setSelectedQuestion(q);
@@ -349,14 +357,15 @@ export function ExamDetail() {
                                   }}
                                   title="Sửa câu hỏi"
                                 >
-                                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit</span>
+                                  <span className="material-symbols-outlined" aria-hidden="true">edit</span>
                                 </button>
                                 <button 
-                                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-error)', display: 'flex', alignItems: 'center', padding: '4px' }}
+                                  className="icon-action icon-action--danger"
+                                  type="button"
                                   onClick={() => handleDeleteQuestion(section.id, q.id)}
                                   title="Xóa câu hỏi"
                                 >
-                                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
+                                  <span className="material-symbols-outlined" aria-hidden="true">delete</span>
                                 </button>
                               </div>
                             </div>
@@ -364,28 +373,11 @@ export function ExamDetail() {
                             {q.options && q.options.length > 0 && (
                               <div className="question-options-container">
                                 {q.options.map((opt, oIdx) => (
-                                  <div key={opt.id || oIdx} style={{ 
-                                    padding: '12px 16px', 
-                                    backgroundColor: opt.isCorrect ? 'rgba(76,175,80,0.08)' : 'var(--color-surface-soft)',
-                                    border: opt.isCorrect ? '1px solid #4caf50' : '1px solid transparent',
-                                    borderRadius: '8px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '12px',
-                                    fontSize: '14px',
-                                    transition: 'all 0.2s'
-                                  }}>
-                                    <span style={{ 
-                                      width: '28px', height: '28px', flexShrink: 0,
-                                      borderRadius: '50%', 
-                                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                      backgroundColor: opt.isCorrect ? '#4caf50' : 'var(--color-surface-strong)',
-                                      color: opt.isCorrect ? 'white' : 'inherit',
-                                      fontWeight: 600, fontSize: '13px'
-                                    }}>
+                                  <div key={opt.id || oIdx} className={`exam-detail__option ${opt.isCorrect ? 'exam-detail__option--correct' : ''}`}>
+                                    <span className="exam-detail__option-label">
                                       {String.fromCharCode(65 + oIdx)}
                                     </span>
-                                    <span style={{ fontWeight: opt.isCorrect ? 600 : 400, lineHeight: '1.4' }}>{opt.content}</span>
+                                    <span className="exam-detail__option-text">{opt.content}</span>
                                   </div>
                                 ))}
                               </div>
@@ -393,43 +385,44 @@ export function ExamDetail() {
 
                             {q.explanation && (
                               <div className="question-explanation">
-                                <div style={{ padding: '16px', backgroundColor: 'var(--color-surface-soft)', borderRadius: '8px', fontSize: '14px' }}>
-                                  <span style={{ fontWeight: 600, color: 'var(--color-primary)', display: 'block', marginBottom: '4px' }}>Giải thích: </span>
-                                  <div style={{ color: 'var(--color-muted)', whiteSpace: 'pre-wrap' }}>{q.explanation}</div>
+                                <div className="exam-detail__question-explanation">
+                                  <span className="exam-detail__explanation-label">Giải thích:</span>
+                                  <div className="exam-detail__explanation-content">{q.explanation}</div>
                                 </div>
                               </div>
                             )}
                           </div>
                         ))}
                         {(!section.questions || section.questions.length === 0) && (
-                          <div style={{ padding: '40px', textAlign: 'center', border: '2px dashed var(--color-border-soft)', borderRadius: '12px', backgroundColor: 'var(--color-surface-soft)' }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: '48px', color: 'var(--color-border)' }}>quiz</span>
-                            <p style={{ color: 'var(--color-muted)', margin: '12px 0 0 0', fontWeight: 500 }}>Chưa có câu hỏi nào trong phần này</p>
+                          <div className="page-state page-state--soft">
+                            <span className="material-symbols-outlined page-state__icon" aria-hidden="true">quiz</span>
+                            <p>Chưa có câu hỏi nào trong phần này</p>
                           </div>
                         )}
                       </div>
 
-                      <div className="question-actions" style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                      <div className="question-actions exam-detail__section-footer page-action-row">
                           <button 
                             className="teacher-btn-outline"
+                            type="button"
                             onClick={() => {
                               setActiveSectionId(section.id);
                               setSelectedQuestion(null);
                               setIsAddQuestionOpen(true);
                             }}
                           >
-                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add_circle</span>
+                            <span className="material-symbols-outlined" aria-hidden="true">add_circle</span>
                             Thêm câu hỏi mới
                           </button>
                           <button 
                             className="teacher-btn-outline"
-                            style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}
+                            type="button"
                             onClick={() => {
                               setActiveSectionId(section.id);
                               setIsUploadFileOpen(true);
                             }}
                           >
-                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>attach_file</span>
+                            <span className="material-symbols-outlined" aria-hidden="true">attach_file</span>
                             Đính kèm file âm thanh / tài liệu
                           </button>
                         </div>
@@ -450,7 +443,7 @@ export function ExamDetail() {
         examId={examId || ''}
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
-        onSuccess={fetchExamDetail}
+        onSuccess={refreshExam}
       />
 
       {isAddSectionOpen && examId && classId && (
@@ -458,12 +451,12 @@ export function ExamDetail() {
           classId={classId}
           examId={examId}
           isOpen={isAddSectionOpen}
-          initialData={selectedSection}
+          initialData={selectedSection ?? undefined}
           onClose={() => {
             setIsAddSectionOpen(false);
             setSelectedSection(null);
           }}
-          onSuccess={fetchExamDetail}
+          onSuccess={refreshExam}
         />
       )}
 
@@ -473,12 +466,12 @@ export function ExamDetail() {
           examId={examId}
           sectionId={activeSectionId}
           isOpen={isAddQuestionOpen}
-          initialData={selectedQuestion}
+          initialData={selectedQuestion ?? undefined}
           onClose={() => {
             setIsAddQuestionOpen(false);
             setSelectedQuestion(null);
           }}
-          onSuccess={fetchExamDetail}
+          onSuccess={refreshExam}
         />
       )}
       {isEditInfoOpen && examId && classId && exam && (
@@ -487,7 +480,7 @@ export function ExamDetail() {
           exam={exam}
           isOpen={isEditInfoOpen}
           onClose={() => setIsEditInfoOpen(false)}
-          onSuccess={fetchExamDetail}
+          onSuccess={refreshExam}
         />
       )}
 
@@ -497,7 +490,7 @@ export function ExamDetail() {
         sectionId={activeSectionId}
         isOpen={isUploadFileOpen}
         onClose={() => setIsUploadFileOpen(false)}
-        onSuccess={fetchExamDetail}
+        onSuccess={refreshExam}
       />
     </div>
   );

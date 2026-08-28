@@ -1,7 +1,8 @@
 import { httpClient } from '../../../shared/lib/httpClient';
-import type { StudentExamInfo, StudentExamDetail, StudentAnswerPayload, ExamResult } from '../domain/studentExam.types';
+import type { StudentExamInfo, StudentExamDetail, StudentAnswerPayload, ExamResult, FullExamResult } from '../domain/studentExam.types';
+import type { StudentExamRepository, StartExamResult } from '../domain/studentExamRepository.port';
 
-export const studentExamApi = {
+export const studentExamApi: StudentExamRepository = {
   getExamsForClass: async (classId: string): Promise<StudentExamInfo[]> => {
     return httpClient.get(`/classes/${classId}/exams`) as Promise<StudentExamInfo[]>;
   },
@@ -10,11 +11,11 @@ export const studentExamApi = {
     return httpClient.get(`/classes/${classId}/exams/${examId}`) as Promise<StudentExamDetail>;
   },
 
-  startExam: async (classId: string, examId: string): Promise<{ startTime: string, isSubmitted: boolean, autoSavedAnswers: Record<string, any> }> => {
-    return httpClient.post(`/classes/${classId}/exams/${examId}/start`) as Promise<{ startTime: string, isSubmitted: boolean, autoSavedAnswers: Record<string, any> }>;
+  startExam: async (classId: string, examId: string): Promise<StartExamResult> => {
+    return httpClient.post(`/classes/${classId}/exams/${examId}/start`) as Promise<StartExamResult>;
   },
 
-  autoSaveExam: async (classId: string, examId: string, data: Record<string, any>): Promise<{ success: boolean }> => {
+  autoSaveExam: async (classId: string, examId: string, data: Record<string, string>): Promise<{ success: boolean }> => {
     return httpClient.post(`/classes/${classId}/exams/${examId}/auto-save`, data) as Promise<{ success: boolean }>;
   },
 
@@ -35,5 +36,9 @@ export const studentExamApi = {
     }) as unknown as { url: string };
     
     return res.url;
+  },
+
+  getExamResult: async (classId: string, examId: string, studentId: string): Promise<FullExamResult> => {
+    return httpClient.get(`/classes/${classId}/exams/${examId}/results/${studentId}`) as Promise<FullExamResult>;
   }
 };

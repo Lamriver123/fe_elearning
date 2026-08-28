@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast'
 import { userApi } from '../infrastructure/userApi'
 import type { UpdateProfilePayload, ChangePasswordPayload } from '../domain/user.types'
 import { useAuth } from '../../auth/application/useAuth'
+import { handleApiError } from '../../../shared/lib/handleApiError'
 
 export function useUserProfile() {
   const [isUpdating, setIsUpdating] = useState(false)
@@ -16,8 +17,8 @@ export function useUserProfile() {
       updateUser(updatedUser)
       toast.success('Cập nhật thông tin thành công')
       return true
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật thông tin')
+    } catch (error) {
+      toast.error(handleApiError(error, 'Có lỗi xảy ra khi cập nhật thông tin'))
       return false
     } finally {
       setIsUpdating(false)
@@ -30,8 +31,8 @@ export function useUserProfile() {
       const res = await userApi.changePassword(payload)
       toast.success(res.message || 'Đổi mật khẩu thành công')
       return true
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi đổi mật khẩu')
+    } catch (error) {
+      toast.error(handleApiError(error, 'Có lỗi xảy ra khi đổi mật khẩu'))
       return false
     } finally {
       setIsChangingPassword(false)
@@ -49,8 +50,8 @@ export function useUserProfile() {
       }
       toast.success(res.message || 'Tải ảnh lên thành công')
       return res.avatar
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Lỗi tải ảnh lên')
+    } catch (error) {
+      toast.error(handleApiError(error, 'Lỗi tải ảnh lên'))
       return null
     } finally {
       setIsUploadingAvatar(false)

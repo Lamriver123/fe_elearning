@@ -12,7 +12,13 @@ export function ClassList({ classes, isLoading, error }: ClassListProps) {
     return (
       <div className="teacher-class-grid">
         {[1, 2, 3].map((n) => (
-          <div key={n} style={{ height: '300px', backgroundColor: 'var(--color-surface-soft)', borderRadius: '12px', animation: 'pulse 2s infinite' }}></div>
+          <div key={n} className="skeleton-card" aria-hidden="true">
+            <div className="skeleton-thumb" />
+            <div className="skeleton-line skeleton-line--lg" />
+            <div className="skeleton-line skeleton-line--md" />
+            <div className="skeleton-line skeleton-line--sm" />
+            <div className="skeleton-chip" />
+          </div>
         ))}
       </div>
     )
@@ -20,8 +26,8 @@ export function ClassList({ classes, isLoading, error }: ClassListProps) {
 
   if (error) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-error)', backgroundColor: 'rgba(186, 26, 26, 0.1)', borderRadius: '12px' }}>
-        <span className="material-symbols-outlined" style={{ fontSize: '48px', marginBottom: '16px' }}>error</span>
+      <div className="page-state page-state--error">
+        <span className="material-symbols-outlined page-state__icon page-state__icon--error" aria-hidden="true">error</span>
         <p>{error}</p>
       </div>
     )
@@ -29,10 +35,10 @@ export function ClassList({ classes, isLoading, error }: ClassListProps) {
 
   if (classes.length === 0) {
     return (
-      <div style={{ padding: '60px 20px', textAlign: 'center', backgroundColor: 'var(--color-surface)', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
-        <span className="material-symbols-outlined" style={{ fontSize: '64px', color: 'var(--color-muted-soft)', marginBottom: '16px' }}>school</span>
-        <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--color-text)', marginBottom: '8px' }}>Chưa có lớp học nào</h3>
-        <p style={{ color: 'var(--color-muted)' }}>Hãy tạo lớp học mới để bắt đầu giảng dạy.</p>
+      <div className="page-state">
+        <span className="material-symbols-outlined page-state__icon" aria-hidden="true">school</span>
+        <h3 className="page-state__title">Chưa có lớp học nào</h3>
+        <p>Hãy tạo lớp học mới để bắt đầu giảng dạy.</p>
       </div>
     )
   }

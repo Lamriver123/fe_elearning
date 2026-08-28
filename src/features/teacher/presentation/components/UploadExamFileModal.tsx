@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { toast } from 'react-hot-toast';
-import { examApi } from '../../infrastructure/examApi';
+import { uploadTeacherExamFile } from '../../application/examUseCases';
+import { handleApiError } from '../../../../shared/lib/handleApiError';
 
 type UploadExamFileModalProps = {
   classId: string;
@@ -29,38 +30,38 @@ export function UploadExamFileModal({ classId, examId, sectionId, questionId, is
 
     try {
       setIsSubmitting(true);
-      await examApi.uploadExamFile(classId, examId, file, purpose, sectionId, questionId);
+      await uploadTeacherExamFile(classId, examId, file, purpose, sectionId, questionId);
       toast.success('Upload file thành công');
       setFile(null);
       setPurpose('EXAM_ORIGINAL');
       onSuccess();
       onClose();
     } catch (err) {
-      toast.error('Không thể upload file');
+      toast.error(handleApiError(err, 'Không thể upload file'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1100 }}>
+    <div className="modal-overlay modal-overlay--raised" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">{sectionId ? 'Đính kèm File vào Phần Thi' : 'Đính kèm File Đề Thi'}</h2>
-          <button type="button" className="modal-close" onClick={onClose}>
-            <span className="material-symbols-outlined">close</span>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="Đóng">
+            <span className="material-symbols-outlined" aria-hidden="true">close</span>
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+        <form className="modal-form" onSubmit={handleSubmit}>
           <div className="modal-body">
           <div className="form-group">
             <label className="form-label">Tệp tin *</label>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div className="file-picker">
               <input
                 type="file"
                 ref={fileInputRef}
-                style={{ display: 'none' }}
+                className="file-picker__input"
                 onChange={e => setFile(e.target.files?.[0] || null)}
                 disabled={isSubmitting}
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.mp3,.mp4,.png,.jpg,.jpeg"
@@ -73,11 +74,11 @@ export function UploadExamFileModal({ classId, examId, sectionId, questionId, is
               >
                 Chọn File
               </button>
-              <span style={{ fontSize: '14px', color: file ? 'var(--color-text)' : 'var(--color-muted)' }}>
+              <span className={`file-picker__name ${file ? 'file-picker__name--selected' : ''}`}>
                 {file ? file.name : 'Chưa chọn file nào'}
               </span>
             </div>
-            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--color-muted)' }}>
+            <p className="modal-hint">
               Hỗ trợ PDF, Word, Excel, Hình ảnh và Audio (MP3)
             </p>
           </div>

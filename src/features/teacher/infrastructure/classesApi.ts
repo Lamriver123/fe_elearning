@@ -1,7 +1,8 @@
 import { httpClient } from '../../../shared/lib/httpClient'
 import type { ClassInfo } from '../domain/teacher.types'
+import type { TeacherClassesRepository } from '../domain/classesRepository.port'
 
-export const classesApi = {
+export const classesApi: TeacherClassesRepository = {
   getMyClasses: (): Promise<ClassInfo[]> => {
     return httpClient.get('/classes') as Promise<ClassInfo[]>
   },

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { examApi } from '../../infrastructure/examApi';
+import { addTeacherExamSection, updateTeacherExamSection } from '../../application/examUseCases';
+import type { SkillType } from '../../domain/exam.types';
+import { handleApiError } from '../../../../shared/lib/handleApiError';
 
 type AddSectionModalProps = {
   classId: string;
@@ -10,7 +12,7 @@ type AddSectionModalProps = {
     id: string;
     title: string;
     instructions?: string;
-    skillType?: string;
+    skillType?: SkillType;
   };
   onClose: () => void;
   onSuccess: () => void;
@@ -19,7 +21,7 @@ type AddSectionModalProps = {
 export function AddSectionModal({ classId, examId, isOpen, initialData, onClose, onSuccess }: AddSectionModalProps) {
   const [title, setTitle] = useState('');
   const [instructions, setInstructions] = useState('');
-  const [skillType, setSkillType] = useState('READING');
+  const [skillType, setSkillType] = useState<SkillType>('READING');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load initialData when opening in edit mode
@@ -47,14 +49,14 @@ export function AddSectionModal({ classId, examId, isOpen, initialData, onClose,
     try {
       setIsSubmitting(true);
       if (initialData) {
-        await examApi.updateSection(classId, examId, initialData.id, {
+        await updateTeacherExamSection(classId, examId, initialData.id, {
           title,
           instructions,
           skillType,
         });
         toast.success('Cập nhật phần thi thành công');
       } else {
-        await examApi.addSection(classId, examId, {
+        await addTeacherExamSection(classId, examId, {
           title,
           instructions,
           skillType,
@@ -68,7 +70,7 @@ export function AddSectionModal({ classId, examId, isOpen, initialData, onClose,
       onSuccess();
       onClose();
     } catch (err) {
-      toast.error('Không thể thêm phần thi');
+      toast.error(handleApiError(err, initialData ? 'Không thể cập nhật phần thi' : 'Không thể thêm phần thi'));
     } finally {
       setIsSubmitting(false);
     }
@@ -79,12 +81,12 @@ export function AddSectionModal({ classId, examId, isOpen, initialData, onClose,
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">{initialData ? 'Sửa Phần Thi' : 'Thêm Phần Thi Mới'}</h2>
-          <button type="button" className="modal-close" onClick={onClose}>
-            <span className="material-symbols-outlined">close</span>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="Đóng">
+            <span className="material-symbols-outlined" aria-hidden="true">close</span>
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+        <form className="modal-form" onSubmit={handleSubmit}>
           <div className="modal-body">
           <div className="form-group">
             <label className="form-label">Tên phần thi *</label>
@@ -108,7 +110,7 @@ export function AddSectionModal({ classId, examId, isOpen, initialData, onClose,
                 onClick={() => setSkillType('READING')}
                 disabled={isSubmitting}
               >
-                <span className="material-symbols-outlined">menu_book</span>
+                <span className="material-symbols-outlined" aria-hidden="true">menu_book</span>
                 <span>Đọc hiểu</span>
               </button>
               <button 
@@ -117,7 +119,7 @@ export function AddSectionModal({ classId, examId, isOpen, initialData, onClose,
                 onClick={() => setSkillType('LISTENING')}
                 disabled={isSubmitting}
               >
-                <span className="material-symbols-outlined">headphones</span>
+                <span className="material-symbols-outlined" aria-hidden="true">headphones</span>
                 <span>Nghe</span>
               </button>
               <button 
@@ -126,7 +128,7 @@ export function AddSectionModal({ classId, examId, isOpen, initialData, onClose,
                 onClick={() => setSkillType('SPEAKING')}
                 disabled={isSubmitting}
               >
-                <span className="material-symbols-outlined">mic</span>
+                <span className="material-symbols-outlined" aria-hidden="true">mic</span>
                 <span>Nói</span>
               </button>
               <button 
@@ -135,7 +137,7 @@ export function AddSectionModal({ classId, examId, isOpen, initialData, onClose,
                 onClick={() => setSkillType('WRITING')}
                 disabled={isSubmitting}
               >
-                <span className="material-symbols-outlined">edit_document</span>
+                <span className="material-symbols-outlined" aria-hidden="true">edit_document</span>
                 <span>Viết</span>
               </button>
             </div>
@@ -154,8 +156,8 @@ export function AddSectionModal({ classId, examId, isOpen, initialData, onClose,
               rows={skillType === 'READING' ? 6 : 3}
             />
             {skillType === 'LISTENING' && (
-              <p style={{ marginTop: '8px', fontSize: '12px', color: 'var(--color-primary)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '14px', verticalAlign: 'middle', marginRight: '4px' }}>info</span>
+              <p className="modal-hint modal-hint--primary">
+                <span className="material-symbols-outlined" aria-hidden="true">info</span>
                 Sau khi tạo phần thi, hãy bấm "Đính kèm file âm thanh / tài liệu" ở màn hình chi tiết để tải file Audio (MP3) lên.
               </p>
             )}

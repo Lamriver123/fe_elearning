@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { toast } from 'react-hot-toast'
-import { classesApi } from '../../infrastructure/classesApi'
+import { createTeacherClass } from '../../application/classUseCases'
 import { ApiError } from '../../../../shared/lib/httpClient'
 
 type CreateClassModalProps = {
@@ -86,7 +86,7 @@ export function CreateClassModal({ isOpen, onClose, onSuccess }: CreateClassModa
       }
 
       // Call API
-      const result = await classesApi.createClass(formData)
+      const result = await createTeacherClass(formData)
       
       toast.success(result.message || 'Tạo lớp học thành công!')
       onSuccess() // Refresh list & close modal
@@ -105,8 +105,8 @@ export function CreateClassModal({ isOpen, onClose, onSuccess }: CreateClassModa
       <div className="teacher-modal" onClick={(e) => e.stopPropagation()}>
         <div className="teacher-modal__header">
           <h2>Tạo Lớp Học Mới</h2>
-          <button className="teacher-modal__close" onClick={onClose}>
-            <span className="material-symbols-outlined">close</span>
+          <button className="teacher-modal__close" type="button" onClick={onClose} aria-label="Đóng">
+            <span className="material-symbols-outlined" aria-hidden="true">close</span>
           </button>
         </div>
         
@@ -153,7 +153,7 @@ export function CreateClassModal({ isOpen, onClose, onSuccess }: CreateClassModa
                 className="teacher-modal__upload-area" 
                 onClick={() => fileInputRef.current?.click()}
               >
-                <span className="material-symbols-outlined teacher-modal__upload-icon">add_photo_alternate</span>
+                <span className="material-symbols-outlined teacher-modal__upload-icon" aria-hidden="true">add_photo_alternate</span>
                 <p>Nhấp để tải lên hình ảnh (Tối đa 5MB)</p>
                 <span className="teacher-modal__upload-hint">Định dạng hỗ trợ: JPG, PNG, WEBP</span>
               </div>
@@ -166,7 +166,7 @@ export function CreateClassModal({ isOpen, onClose, onSuccess }: CreateClassModa
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isSubmitting}
                 >
-                  <span className="material-symbols-outlined">edit</span>
+                  <span className="material-symbols-outlined" aria-hidden="true">edit</span>
                   Đổi ảnh
                 </button>
               </div>

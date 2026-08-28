@@ -16,8 +16,8 @@ export function WelcomeSection({ user, stats }: WelcomeSectionProps) {
           <p className="student-welcome__desc">
             Bạn đã hoàn thành 2 bài học trong tuần này. Tiếp tục phát huy nhé!
           </p>
-          <button className="student-welcome__btn">
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>play_arrow</span>
+          <button className="student-welcome__btn" type="button">
+            <span className="material-symbols-outlined" aria-hidden="true">play_arrow</span>
             Tiếp tục học
           </button>
         </div>
@@ -26,7 +26,7 @@ export function WelcomeSection({ user, stats }: WelcomeSectionProps) {
       <div className="student-welcome__stats">
         <div className="student-stat-card">
           <div className="student-stat-card__icon student-stat-card__icon--streak">
-            <span className="material-symbols-outlined">local_fire_department</span>
+            <span className="material-symbols-outlined" aria-hidden="true">local_fire_department</span>
           </div>
           <div>
             <p className="student-stat-card__label">Chuỗi ngày học</p>
@@ -36,7 +36,7 @@ export function WelcomeSection({ user, stats }: WelcomeSectionProps) {
 
         <div className="student-stat-card">
           <div className="student-stat-card__icon student-stat-card__icon--task">
-            <span className="material-symbols-outlined">task_alt</span>
+            <span className="material-symbols-outlined" aria-hidden="true">task_alt</span>
           </div>
           <div>
             <p className="student-stat-card__label">Bài tập hoàn thành</p>

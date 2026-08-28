@@ -21,6 +21,14 @@ export type StudentExamDetail = StudentExamInfo & {
   sections: StudentExamSection[];
 };
 
+export type StudentExamFile = {
+  id: string;
+  fileUrl: string;
+  fileName: string;
+  fileType: 'AUDIO' | 'IMAGE' | 'PDF' | 'DOCUMENT' | 'VIDEO';
+  purpose?: string;
+};
+
 export type StudentExamSection = {
   id: string;
   title: string;
@@ -28,7 +36,7 @@ export type StudentExamSection = {
   skillType: 'READING' | 'LISTENING' | 'SPEAKING' | 'WRITING';
   orderIndex: number;
   questions: StudentQuestion[];
-  files?: any[];
+  files?: StudentExamFile[];
 };
 
 export type StudentQuestion = {
@@ -54,4 +62,30 @@ export type ExamResult = {
   totalScore: number;
   totalPoints: number;
   gradedAt: string;
+};
+
+export type StudentAnswerResult = {
+  id: string;
+  score: number;
+  isAutoGraded: boolean;
+  textAnswer?: string;
+  fileUrl?: string;
+  teacherComment?: string;
+  question: {
+    id: string;
+    content: string;
+    questionType: string;
+    points: number;
+    explanation?: string;
+  };
+  selectedOption?: {
+    id: string;
+    content: string;
+    isCorrect: boolean;
+  };
+};
+
+export type FullExamResult = {
+  totalScore: number;
+  answers: StudentAnswerResult[];
 };

@@ -20,12 +20,12 @@ export function ScheduleList({ schedules }: ScheduleListProps) {
             <div className="schedule-item__details">
               <h4>{schedule.title}</h4>
               <p className="schedule-item__time">
-                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>schedule</span>
+                <span className="material-symbols-outlined" aria-hidden="true">schedule</span>
                 {schedule.time}
               </p>
               {schedule.type === 'zoom' && (
                 <div className="schedule-item__type">
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>videocam</span>
+                  <span className="material-symbols-outlined" aria-hidden="true">videocam</span>
                   Zoom
                 </div>
               )}
@@ -41,7 +41,7 @@ export function ScheduleList({ schedules }: ScheduleListProps) {
           <p className="promo-card__desc">
             Làm bài test 15 phút để đánh giá trình độ hiện tại.
           </p>
-          <button className="promo-card__btn">Bắt đầu ngay</button>
+          <button className="promo-card__btn" type="button">Bắt đầu ngay</button>
         </div>
       </div>
     </aside>

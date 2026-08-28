@@ -20,12 +20,15 @@ const ROUTES = {
 
 function AppLoading() {
   return (
-    <main className="auth-page auth-page--loading" aria-live="polite">
+    <main className="auth-page auth-page--loading" aria-label="Đang kiểm tra phiên đăng nhập" aria-live="polite">
       <div className="app-loading">
-        <span className="material-symbols-outlined app-loading__icon" aria-hidden="true">
-          school
-        </span>
-        <p>Đang kiểm tra phiên đăng nhập...</p>
+        <div className="app-loading__brand" aria-hidden="true">
+          <img className="app-loading__logo" src="/favicon.svg" alt="" />
+        </div>
+        <div className="app-loading__copy" aria-hidden="true">
+          <span className="skeleton-line skeleton-line--lg" />
+          <span className="skeleton-line skeleton-line--md" />
+        </div>
       </div>
     </main>
   )

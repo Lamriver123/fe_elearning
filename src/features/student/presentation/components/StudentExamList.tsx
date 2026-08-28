@@ -75,9 +75,33 @@ export function StudentExamList({ classId }: StudentExamListProps) {
 
   if (isLoading) {
     return (
-      <div className="exam-timeline-loading">
-        <span className="material-symbols-outlined exam-timeline-loading__icon">hourglass_top</span>
-        <p>Đang tải danh sách bài thi...</p>
+      <div className="exam-timeline-loading" aria-label="Đang tải danh sách bài thi">
+        <div className="exam-timeline-summary">
+          {[1, 2, 3].map((item) => (
+            <div key={item} className="exam-timeline-summary__item">
+              <span className="skeleton-avatar" aria-hidden="true" />
+              <div>
+                <span className="skeleton-line skeleton-line--sm" />
+                <span className="skeleton-line" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="exam-timeline-list">
+          {[1, 2].map((item) => (
+            <div key={item} className="exam-timeline-item">
+              <div className="exam-timeline-item__connector">
+                <div className="skeleton-avatar" />
+                {item === 1 && <div className="exam-timeline-item__line" />}
+              </div>
+              <div className="exam-timeline-item__card skeleton-card" aria-hidden="true">
+                <div className="skeleton-line skeleton-line--lg" />
+                <div className="skeleton-line skeleton-line--md" />
+                <div className="skeleton-chip" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -85,7 +109,7 @@ export function StudentExamList({ classId }: StudentExamListProps) {
   if (error) {
     return (
       <div className="exam-timeline-error">
-        <span className="material-symbols-outlined">error</span>
+        <span className="material-symbols-outlined" aria-hidden="true">error</span>
         Lỗi: {error}
       </div>
     );
@@ -94,7 +118,7 @@ export function StudentExamList({ classId }: StudentExamListProps) {
   if (exams.length === 0) {
     return (
       <div className="exam-timeline-empty">
-        <span className="material-symbols-outlined exam-timeline-empty__icon">assignment</span>
+        <span className="material-symbols-outlined exam-timeline-empty__icon" aria-hidden="true">assignment</span>
         <h3 className="exam-timeline-empty__title">Chưa có bài thi nào</h3>
         <p className="exam-timeline-empty__desc">Giáo viên của bạn chưa giao bài thi nào cho lớp này.</p>
       </div>
@@ -122,7 +146,7 @@ export function StudentExamList({ classId }: StudentExamListProps) {
       {/* Summary bar */}
       <div className="exam-timeline-summary">
         <div className="exam-timeline-summary__item">
-          <span className="material-symbols-outlined exam-timeline-summary__icon exam-timeline-summary__icon--total">assignment</span>
+          <span className="material-symbols-outlined exam-timeline-summary__icon exam-timeline-summary__icon--total" aria-hidden="true">assignment</span>
           <div>
             <span className="exam-timeline-summary__number">{exams.length}</span>
             <span className="exam-timeline-summary__label">Tổng bài thi</span>
@@ -130,7 +154,7 @@ export function StudentExamList({ classId }: StudentExamListProps) {
         </div>
         <div className="exam-timeline-summary__divider" />
         <div className="exam-timeline-summary__item">
-          <span className="material-symbols-outlined exam-timeline-summary__icon exam-timeline-summary__icon--pending">edit_note</span>
+          <span className="material-symbols-outlined exam-timeline-summary__icon exam-timeline-summary__icon--pending" aria-hidden="true">edit_note</span>
           <div>
             <span className="exam-timeline-summary__number">{pendingCount}</span>
             <span className="exam-timeline-summary__label">Cần làm</span>
@@ -138,7 +162,7 @@ export function StudentExamList({ classId }: StudentExamListProps) {
         </div>
         <div className="exam-timeline-summary__divider" />
         <div className="exam-timeline-summary__item">
-          <span className="material-symbols-outlined exam-timeline-summary__icon exam-timeline-summary__icon--done">task_alt</span>
+          <span className="material-symbols-outlined exam-timeline-summary__icon exam-timeline-summary__icon--done" aria-hidden="true">task_alt</span>
           <div>
             <span className="exam-timeline-summary__number">{submittedCount}</span>
             <span className="exam-timeline-summary__label">Đã hoàn thành</span>
@@ -157,7 +181,7 @@ export function StudentExamList({ classId }: StudentExamListProps) {
               {/* Timeline connector */}
               <div className="exam-timeline-item__connector">
                 <div className={`exam-timeline-item__dot ${status.className}`}>
-                  <span className="material-symbols-outlined">{status.icon}</span>
+                  <span className="material-symbols-outlined" aria-hidden="true">{status.icon}</span>
                 </div>
                 {!isLast && <div className="exam-timeline-item__line" />}
               </div>
@@ -178,18 +202,18 @@ export function StudentExamList({ classId }: StudentExamListProps) {
 
                 <div className="exam-timeline-item__meta">
                   <div className="exam-timeline-item__meta-chip">
-                    <span className="material-symbols-outlined">{getSkillIcon(exam.skillType)}</span>
+                    <span className="material-symbols-outlined" aria-hidden="true">{getSkillIcon(exam.skillType)}</span>
                     {getSkillLabel(exam.skillType)}
                   </div>
                   {exam.classSettings?.durationMinutes && (
                     <div className="exam-timeline-item__meta-chip">
-                      <span className="material-symbols-outlined">timer</span>
+                      <span className="material-symbols-outlined" aria-hidden="true">timer</span>
                       {exam.classSettings.durationMinutes} phút
                     </div>
                   )}
                   {exam.totalPoints != null && exam.totalPoints > 0 && (
                     <div className="exam-timeline-item__meta-chip">
-                      <span className="material-symbols-outlined">star</span>
+                      <span className="material-symbols-outlined" aria-hidden="true">star</span>
                       {exam.totalPoints} điểm
                     </div>
                   )}
@@ -199,21 +223,21 @@ export function StudentExamList({ classId }: StudentExamListProps) {
                 <div className="exam-timeline-item__milestones">
                   {exam.createdAt && (
                     <div className="exam-timeline-item__milestone">
-                      <span className="material-symbols-outlined">event</span>
+                      <span className="material-symbols-outlined" aria-hidden="true">event</span>
                       <span className="exam-timeline-item__milestone-label">Tạo:</span>
                       <span>{formatDate(exam.createdAt)} lúc {formatTime(exam.createdAt)}</span>
                     </div>
                   )}
                   {exam.classSettings?.startTime && (
                     <div className="exam-timeline-item__milestone">
-                      <span className="material-symbols-outlined">play_circle</span>
+                      <span className="material-symbols-outlined" aria-hidden="true">play_circle</span>
                       <span className="exam-timeline-item__milestone-label">Mở:</span>
                       <span>{formatDate(exam.classSettings.startTime)} lúc {formatTime(exam.classSettings.startTime)}</span>
                     </div>
                   )}
                   {exam.classSettings?.endTime && (
                     <div className="exam-timeline-item__milestone">
-                      <span className="material-symbols-outlined">stop_circle</span>
+                      <span className="material-symbols-outlined" aria-hidden="true">stop_circle</span>
                       <span className="exam-timeline-item__milestone-label">Đóng:</span>
                       <span>{formatDate(exam.classSettings.endTime)} lúc {formatTime(exam.classSettings.endTime)}</span>
                       {formatRelativeDate(exam.classSettings.endTime) && (
@@ -231,7 +255,7 @@ export function StudentExamList({ classId }: StudentExamListProps) {
                     className="exam-timeline-item__action-link"
                   >
                     <button className={`exam-timeline-item__btn ${exam.isSubmitted ? 'exam-timeline-item__btn--secondary' : 'exam-timeline-item__btn--primary'}`}>
-                      <span className="material-symbols-outlined">
+                      <span className="material-symbols-outlined" aria-hidden="true">
                         {exam.isSubmitted ? 'visibility' : 'play_arrow'}
                       </span>
                       {exam.isSubmitted ? 'Xem kết quả' : 'Bắt đầu làm bài'}

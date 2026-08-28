@@ -1,6 +1,5 @@
 import axios, { AxiosError } from 'axios'
 import { API_URL } from '../config/env'
-import { getAccessToken } from '../../features/auth/infrastructure/authStorage'
 
 export type ApiErrorPayload = {
   message?: string | string[]
@@ -20,6 +19,12 @@ export class ApiError extends Error {
   }
 }
 
+let resolveAccessToken: () => string | null = () => null
+
+export function configureAccessTokenResolver(resolver: () => string | null) {
+  resolveAccessToken = resolver
+}
+
 export const httpClient = axios.create({
   baseURL: API_URL,
 })
@@ -27,7 +32,7 @@ export const httpClient = axios.create({
 httpClient.interceptors.request.use(
   (config) => {
     // Tự động đính kèm Token (nếu có) vào Header
-    const token = getAccessToken()
+    const token = resolveAccessToken()
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }

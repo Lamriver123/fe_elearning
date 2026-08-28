@@ -1,24 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'react-hot-toast';
-import { httpClient } from '../../../../shared/lib/httpClient';
-
-type StudentMember = {
-  id: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'INVITED';
-  joinedAt: string;
-  student: {
-    id: string;
-    fullName: string;
-    userName: string;
-    email: string;
-    phone?: string;
-    avatar: string;
-    gender?: 'MALE' | 'FEMALE' | 'OTHER';
-    dateOfBirth?: string;
-    address?: string;
-    createdAt: string;
-  };
-};
+import { useState } from 'react';
+import { useClassMembers } from '../../application/useClassMembers';
+import type { ClassMemberStatus, StudentMember } from '../../domain/classMember.types';
 
 function formatDate(dateStr?: string) {
   if (!dateStr) return '—';
@@ -27,11 +9,11 @@ function formatDate(dateStr?: string) {
 
 function getStatusInfo(status: string) {
   switch (status) {
-    case 'APPROVED': return { label: 'Đã duyệt', color: '#2e7d32', bg: '#e8f5e9' };
-    case 'PENDING': return { label: 'Chờ duyệt', color: '#e65100', bg: '#fff3e0' };
-    case 'INVITED': return { label: 'Đã mời', color: '#1565c0', bg: '#e3f2fd' };
-    case 'REJECTED': return { label: 'Đã từ chối', color: '#c62828', bg: '#ffebee' };
-    default: return { label: status, color: 'var(--color-muted)', bg: 'var(--color-surface-soft)' };
+    case 'APPROVED': return { label: 'Đã duyệt', className: 'status-pill--success' };
+    case 'PENDING': return { label: 'Chờ duyệt', className: 'status-pill--warning' };
+    case 'INVITED': return { label: 'Đã mời', className: 'status-pill--info' };
+    case 'REJECTED': return { label: 'Đã từ chối', className: 'status-pill--danger' };
+    default: return { label: status, className: '' };
   }
 }
 
@@ -44,49 +26,27 @@ function getGenderLabel(gender?: string) {
   }
 }
 
+function getAvatarSrc(member: StudentMember) {
+  return member.student.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.student.fullName)}&background=random`;
+}
+
 export function StudentListTab({ classId }: { classId: string }) {
-  const [members, setMembers] = useState<StudentMember[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { members, isLoading, error, updateMemberStatus, removeMember } = useClassMembers(classId);
   const [selectedStudent, setSelectedStudent] = useState<StudentMember | null>(null);
   const [filter, setFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'INVITED'>('ALL');
 
-  const fetchMembers = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const data = await httpClient.get(`/classes/${classId}/members`) as StudentMember[];
-      setMembers(data);
-    } catch (err: any) {
-      setError(err.message || 'Lỗi khi tải danh sách');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [classId]);
-
-  useEffect(() => {
-    fetchMembers();
-  }, [fetchMembers]);
-
-  const handleApprove = async (studentId: string, status: 'APPROVED' | 'REJECTED') => {
-    try {
-      await httpClient.patch(`/classes/${classId}/members/${studentId}/approve`, { status });
-      toast.success(status === 'APPROVED' ? 'Đã duyệt học sinh' : 'Đã từ chối học sinh');
+  const handleApprove = async (studentId: string, status: Extract<ClassMemberStatus, 'APPROVED' | 'REJECTED'>) => {
+    const success = await updateMemberStatus(studentId, status);
+    if (success) {
       setSelectedStudent(null);
-      fetchMembers();
-    } catch (err: any) {
-      toast.error(err.message || 'Có lỗi xảy ra');
     }
   };
 
   const handleKick = async (studentId: string) => {
     if (!window.confirm('Bạn có chắc chắn muốn đuổi học sinh này khỏi lớp?')) return;
-    try {
-      await httpClient.delete(`/classes/${classId}/members/${studentId}`);
-      toast.success('Đã xóa học sinh khỏi lớp');
+    const success = await removeMember(studentId);
+    if (success) {
       setSelectedStudent(null);
-      fetchMembers();
-    } catch (err: any) {
-      toast.error(err.message || 'Có lỗi xảy ra');
     }
   };
 
@@ -98,18 +58,24 @@ export function StudentListTab({ classId }: { classId: string }) {
 
   if (isLoading) {
     return (
-      <div className="student-list-loading">
-        <span className="material-symbols-outlined student-list-loading__icon">group</span>
-        <p>Đang tải danh sách học sinh...</p>
+      <div className="student-list-loading" aria-label="Đang tải danh sách học sinh">
+        {[1, 2, 3].map((item) => (
+          <div key={item} className="student-list-skeleton skeleton-card" aria-hidden="true">
+            <span className="skeleton-avatar" />
+            <span className="skeleton-line skeleton-line--lg" />
+            <span className="skeleton-line skeleton-line--md" />
+            <span className="skeleton-chip" />
+          </div>
+        ))}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="student-list-error">
-        <span className="material-symbols-outlined">error</span>
-        Lỗi: {error}
+      <div className="student-list-error page-state--error">
+        <span className="material-symbols-outlined page-state__icon page-state__icon--error" aria-hidden="true">error</span>
+        <p>Lỗi: {error}</p>
       </div>
     );
   }
@@ -119,7 +85,7 @@ export function StudentListTab({ classId }: { classId: string }) {
       {/* Summary */}
       <div className="student-list-summary">
         <div className="student-list-summary__item">
-          <span className="material-symbols-outlined student-list-summary__icon student-list-summary__icon--total">groups</span>
+          <span className="material-symbols-outlined student-list-summary__icon student-list-summary__icon--total" aria-hidden="true">groups</span>
           <div>
             <span className="student-list-summary__number">{members.length}</span>
             <span className="student-list-summary__label">Tổng cộng</span>
@@ -127,7 +93,7 @@ export function StudentListTab({ classId }: { classId: string }) {
         </div>
         <div className="student-list-summary__divider" />
         <div className="student-list-summary__item">
-          <span className="material-symbols-outlined student-list-summary__icon student-list-summary__icon--approved">how_to_reg</span>
+          <span className="material-symbols-outlined student-list-summary__icon student-list-summary__icon--approved" aria-hidden="true">how_to_reg</span>
           <div>
             <span className="student-list-summary__number">{approvedCount}</span>
             <span className="student-list-summary__label">Đã duyệt</span>
@@ -135,7 +101,7 @@ export function StudentListTab({ classId }: { classId: string }) {
         </div>
         <div className="student-list-summary__divider" />
         <div className="student-list-summary__item">
-          <span className="material-symbols-outlined student-list-summary__icon student-list-summary__icon--pending">pending</span>
+          <span className="material-symbols-outlined student-list-summary__icon student-list-summary__icon--pending" aria-hidden="true">pending</span>
           <div>
             <span className="student-list-summary__number">{pendingCount}</span>
             <span className="student-list-summary__label">Chờ duyệt</span>
@@ -145,7 +111,7 @@ export function StudentListTab({ classId }: { classId: string }) {
           <>
             <div className="student-list-summary__divider" />
             <div className="student-list-summary__item">
-              <span className="material-symbols-outlined student-list-summary__icon student-list-summary__icon--invited">mail</span>
+              <span className="material-symbols-outlined student-list-summary__icon student-list-summary__icon--invited" aria-hidden="true">mail</span>
               <div>
                 <span className="student-list-summary__number">{invitedCount}</span>
                 <span className="student-list-summary__label">Đã mời</span>
@@ -164,6 +130,7 @@ export function StudentListTab({ classId }: { classId: string }) {
             <button
               key={f}
               className={`student-list-filter-btn ${filter === f ? 'student-list-filter-btn--active' : ''}`}
+              type="button"
               onClick={() => setFilter(f)}
             >
               {labels[f]} ({counts[f]})
@@ -175,7 +142,7 @@ export function StudentListTab({ classId }: { classId: string }) {
       {/* Student list */}
       {filteredMembers.length === 0 ? (
         <div className="student-list-empty">
-          <span className="material-symbols-outlined" style={{ fontSize: '48px', color: 'var(--color-muted-soft)' }}>person_off</span>
+          <span className="material-symbols-outlined page-state__icon" aria-hidden="true">person_off</span>
           <p>Không có học sinh nào.</p>
         </div>
       ) : (
@@ -190,7 +157,7 @@ export function StudentListTab({ classId }: { classId: string }) {
               >
                 <div className="student-list-item__rank">{idx + 1}</div>
                 <img
-                  src={member.student.avatar}
+                  src={getAvatarSrc(member)}
                   alt={member.student.fullName}
                   className="student-list-item__avatar"
                 />
@@ -200,17 +167,14 @@ export function StudentListTab({ classId }: { classId: string }) {
                 </div>
                 <div className="student-list-item__meta">
                   <span className="student-list-item__joined">
-                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>calendar_today</span>
+                    <span className="material-symbols-outlined" aria-hidden="true">calendar_today</span>
                     {formatDate(member.joinedAt)}
                   </span>
                 </div>
-                <span
-                  className="student-list-item__status"
-                  style={{ backgroundColor: statusInfo.bg, color: statusInfo.color }}
-                >
+                <span className={`student-list-item__status status-pill ${statusInfo.className}`}>
                   {statusInfo.label}
                 </span>
-                <span className="material-symbols-outlined student-list-item__chevron">chevron_right</span>
+                <span className="material-symbols-outlined student-list-item__chevron" aria-hidden="true">chevron_right</span>
               </div>
             );
           })}
@@ -220,81 +184,75 @@ export function StudentListTab({ classId }: { classId: string }) {
       {/* Student detail modal */}
       {selectedStudent && (
         <div className="student-detail-overlay" onClick={() => setSelectedStudent(null)}>
-          <div className="student-detail-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '100%' }}>
-            <button className="student-detail-modal__close" onClick={() => setSelectedStudent(null)}>
-              <span className="material-symbols-outlined">close</span>
+          <div className="student-detail-modal student-detail-modal--wide" onClick={e => e.stopPropagation()}>
+            <button className="student-detail-modal__close" type="button" onClick={() => setSelectedStudent(null)}>
+              <span className="material-symbols-outlined" aria-hidden="true">close</span>
             </button>
 
             <div className="student-detail-modal__header">
               <img
-                src={selectedStudent.student.avatar}
+                src={getAvatarSrc(selectedStudent)}
                 alt={selectedStudent.student.fullName}
                 className="student-detail-modal__avatar"
               />
               <h2 className="student-detail-modal__name">{selectedStudent.student.fullName}</h2>
               <span className="student-detail-modal__username">@{selectedStudent.student.userName}</span>
-              <span
-                className="student-detail-modal__status-badge"
-                style={{
-                  backgroundColor: getStatusInfo(selectedStudent.status).bg,
-                  color: getStatusInfo(selectedStudent.status).color,
-                }}
-              >
+              <span className={`student-detail-modal__status-badge status-pill ${getStatusInfo(selectedStudent.status).className}`}>
                 {getStatusInfo(selectedStudent.status).label}
               </span>
             </div>
 
-            <div className="student-detail-modal__body" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px', padding: '24px' }}>
-              <div className="student-detail-modal__field" style={{ gridColumn: 'span 2', paddingBottom: '0', borderBottom: 'none' }}>
-                <span className="material-symbols-outlined">mail</span>
+            <div className="student-detail-modal__body student-detail-modal__body--grid">
+              <div className="student-detail-modal__field student-detail-modal__field--wide">
+                <span className="material-symbols-outlined" aria-hidden="true">mail</span>
                 <div>
                   <span className="student-detail-modal__field-label">Email</span>
                   <span className="student-detail-modal__field-value">{selectedStudent.student.email}</span>
                 </div>
               </div>
 
-              <div className="student-detail-modal__field" style={{ paddingBottom: '0', borderBottom: 'none' }}>
-                <span className="material-symbols-outlined">phone</span>
+              <div className="student-detail-modal__field">
+                <span className="material-symbols-outlined" aria-hidden="true">phone</span>
                 <div>
                   <span className="student-detail-modal__field-label">Số điện thoại</span>
                   <span className="student-detail-modal__field-value">{selectedStudent.student.phone || '—'}</span>
                 </div>
               </div>
 
-              <div className="student-detail-modal__field" style={{ paddingBottom: '0', borderBottom: 'none' }}>
-                <span className="material-symbols-outlined">wc</span>
+              <div className="student-detail-modal__field">
+                <span className="material-symbols-outlined" aria-hidden="true">wc</span>
                 <div>
                   <span className="student-detail-modal__field-label">Giới tính</span>
                   <span className="student-detail-modal__field-value">{getGenderLabel(selectedStudent.student.gender)}</span>
                 </div>
               </div>
 
-              <div className="student-detail-modal__field" style={{ paddingBottom: '0', borderBottom: 'none' }}>
-                <span className="material-symbols-outlined">cake</span>
+              <div className="student-detail-modal__field">
+                <span className="material-symbols-outlined" aria-hidden="true">cake</span>
                 <div>
                   <span className="student-detail-modal__field-label">Ngày sinh</span>
                   <span className="student-detail-modal__field-value">{formatDate(selectedStudent.student.dateOfBirth)}</span>
                 </div>
               </div>
 
-              <div className="student-detail-modal__field" style={{ paddingBottom: '0', borderBottom: 'none' }}>
-                <span className="material-symbols-outlined">location_on</span>
+              <div className="student-detail-modal__field">
+                <span className="material-symbols-outlined" aria-hidden="true">location_on</span>
                 <div>
                   <span className="student-detail-modal__field-label">Địa chỉ</span>
                   <span className="student-detail-modal__field-value">{selectedStudent.student.address || '—'}</span>
                 </div>
               </div>
 
-              <div className="student-detail-modal__field" style={{ paddingBottom: '0', borderBottom: 'none' }}>
-                <span className="material-symbols-outlined">event</span>
+              <div className="student-detail-modal__field">
+                <span className="material-symbols-outlined" aria-hidden="true">event</span>
                 <div>
                   <span className="student-detail-modal__field-label">Ngày tham gia lớp</span>
                   <span className="student-detail-modal__field-value">{formatDate(selectedStudent.joinedAt)}</span>
                 </div>
               </div>
 
-              <div className="student-detail-modal__field" style={{ paddingBottom: '0', borderBottom: 'none' }}>
-                <span className="material-symbols-outlined">person_add</span>
+              <div className="student-detail-modal__field">
+                <span className="material-symbols-outlined" aria-hidden="true">person_add</span>
                 <div>
                   <span className="student-detail-modal__field-label">Ngày đăng ký tài khoản</span>
                   <span className="student-detail-modal__field-value">{formatDate(selectedStudent.student.createdAt)}</span>
@@ -302,18 +260,20 @@ export function StudentListTab({ classId }: { classId: string }) {
               </div>
             </div>
 
-            <div className="student-detail-modal__actions" style={{ display: 'flex', gap: '12px', padding: '16px 24px', borderTop: '1px solid var(--color-border)' }}>
+            <div className="student-detail-modal__actions">
               {selectedStudent.status === 'PENDING' && (
                 <>
                   <button 
+                    className="student-detail-modal__action-approve"
+                    type="button"
                     onClick={() => handleApprove(selectedStudent.student.id, 'APPROVED')}
-                    style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: '#2e7d32', color: 'white', fontWeight: 600, cursor: 'pointer' }}
                   >
                     Duyệt tham gia
                   </button>
                   <button 
+                    className="student-detail-modal__action-reject"
+                    type="button"
                     onClick={() => handleApprove(selectedStudent.student.id, 'REJECTED')}
-                    style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #c62828', backgroundColor: 'transparent', color: '#c62828', fontWeight: 600, cursor: 'pointer' }}
                   >
                     Từ chối
                   </button>
@@ -321,8 +281,9 @@ export function StudentListTab({ classId }: { classId: string }) {
               )}
               {selectedStudent.status === 'APPROVED' && (
                 <button 
+                  className="student-detail-modal__action-danger"
+                  type="button"
                   onClick={() => handleKick(selectedStudent.student.id)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #c62828', backgroundColor: '#ffebee', color: '#c62828', fontWeight: 600, cursor: 'pointer' }}
                 >
                   Xóa khỏi lớp
                 </button>

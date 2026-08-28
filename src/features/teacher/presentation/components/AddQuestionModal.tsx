@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { examApi } from '../../infrastructure/examApi';
+import { addTeacherExamQuestion, updateTeacherExamQuestion } from '../../application/examUseCases';
+import type { QuestionPayload, QuestionType } from '../../domain/exam.types';
+import { handleApiError } from '../../../../shared/lib/handleApiError';
 
 type AddQuestionModalProps = {
   classId: string;
@@ -9,7 +11,7 @@ type AddQuestionModalProps = {
   isOpen: boolean;
   initialData?: {
     id: string;
-    questionType: string;
+    questionType: QuestionType;
     content: string;
     points: number;
     explanation?: string;
@@ -20,7 +22,7 @@ type AddQuestionModalProps = {
 };
 
 export function AddQuestionModal({ classId, examId, sectionId, isOpen, initialData, onClose, onSuccess }: AddQuestionModalProps) {
-  const [questionType, setQuestionType] = useState('MULTIPLE_CHOICE');
+  const [questionType, setQuestionType] = useState<QuestionType>('MULTIPLE_CHOICE');
   const [content, setContent] = useState('');
   const [points, setPoints] = useState(1);
   const [explanation, setExplanation] = useState('');
@@ -111,20 +113,28 @@ export function AddQuestionModal({ classId, examId, sectionId, isOpen, initialDa
 
     try {
       setIsSubmitting(true);
-      const payload = {
+      const payload: QuestionPayload = {
         questionType,
-        content,
+        content: content.trim(),
         points,
-        explanation,
+        explanation: explanation.trim(),
         orderIndex: 0,
-        options: questionType === 'MULTIPLE_CHOICE' ? options.filter(o => o.content.trim() !== '') : []
+        options: questionType === 'MULTIPLE_CHOICE'
+          ? options
+              .filter(o => o.content.trim() !== '')
+              .map((option, index) => ({
+                ...option,
+                content: option.content.trim(),
+                orderIndex: index,
+              }))
+          : [],
       };
 
       if (initialData) {
-        await examApi.updateQuestion(classId, examId, sectionId, initialData.id, payload);
+        await updateTeacherExamQuestion(classId, examId, sectionId, initialData.id, payload);
         toast.success('Cập nhật câu hỏi thành công');
       } else {
-        await examApi.addQuestion(classId, examId, sectionId, payload);
+        await addTeacherExamQuestion(classId, examId, sectionId, payload);
         toast.success('Thêm câu hỏi thành công');
       }
       
@@ -142,61 +152,58 @@ export function AddQuestionModal({ classId, examId, sectionId, isOpen, initialDa
       onSuccess();
       onClose();
     } catch (err) {
-      toast.error('Không thể thêm câu hỏi');
+      toast.error(handleApiError(err, 'Không thể thêm câu hỏi'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1100 }}>
-      <div className="modal-content" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
+    <div className="modal-overlay modal-overlay--raised" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">{initialData ? 'Sửa Câu Hỏi' : 'Thêm Câu Hỏi Mới'}</h2>
-          <button type="button" className="modal-close" onClick={onClose}>
-            <span className="material-symbols-outlined">close</span>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="Đóng">
+            <span className="material-symbols-outlined" aria-hidden="true">close</span>
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+        <form className="modal-form" onSubmit={handleSubmit}>
           <div className="modal-body">
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-            <div className="form-group" style={{ flex: '1 1 200px' }}>
+          <div className="modal-form__row">
+            <div className="form-group modal-form__field">
               <label className="form-label">Loại câu hỏi</label>
               <div className="custom-select-group">
                 <button 
                   type="button"
-                  className={`custom-select-btn ${questionType === 'MULTIPLE_CHOICE' ? 'active' : ''}`}
+                  className={`custom-select-btn custom-select-btn--compact ${questionType === 'MULTIPLE_CHOICE' ? 'active' : ''}`}
                   onClick={() => setQuestionType('MULTIPLE_CHOICE')}
                   disabled={isSubmitting}
-                  style={{ minWidth: '90px' }}
                 >
-                  <span className="material-symbols-outlined">format_list_bulleted</span>
+                  <span className="material-symbols-outlined" aria-hidden="true">format_list_bulleted</span>
                   <span>Trắc nghiệm</span>
                 </button>
                 <button 
                   type="button"
-                  className={`custom-select-btn ${questionType === 'ESSAY' ? 'active' : ''}`}
+                  className={`custom-select-btn custom-select-btn--compact ${questionType === 'ESSAY' ? 'active' : ''}`}
                   onClick={() => setQuestionType('ESSAY')}
                   disabled={isSubmitting}
-                  style={{ minWidth: '90px' }}
                 >
-                  <span className="material-symbols-outlined">edit_note</span>
+                  <span className="material-symbols-outlined" aria-hidden="true">edit_note</span>
                   <span>Tự luận</span>
                 </button>
                 <button 
                   type="button"
-                  className={`custom-select-btn ${questionType === 'AUDIO_RESPONSE' ? 'active' : ''}`}
+                  className={`custom-select-btn custom-select-btn--compact ${questionType === 'AUDIO_RESPONSE' ? 'active' : ''}`}
                   onClick={() => setQuestionType('AUDIO_RESPONSE')}
                   disabled={isSubmitting}
-                  style={{ minWidth: '90px' }}
                 >
-                  <span className="material-symbols-outlined">mic</span>
+                  <span className="material-symbols-outlined" aria-hidden="true">mic</span>
                   <span>Nói</span>
                 </button>
               </div>
             </div>
-            <div className="form-group" style={{ flex: '1 1 100px' }}>
+            <div className="form-group modal-form__field modal-form__field--narrow">
               <label className="form-label">Điểm số</label>
               <input
                 type="number"
@@ -225,29 +232,28 @@ export function AddQuestionModal({ classId, examId, sectionId, isOpen, initialDa
           {questionType === 'MULTIPLE_CHOICE' && (
             <div className="form-group">
               <label className="form-label">Các lựa chọn đáp án</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div className="question-modal__option-list">
                 {options.map((opt, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div key={idx} className="question-modal__option">
                     <input 
                       type="radio" 
                       name="correct-option" 
                       checked={opt.isCorrect}
                       onChange={() => handleCorrectOptionChange(idx)}
-                      style={{ cursor: 'pointer', width: '20px', height: '20px' }}
+                      className="question-modal__radio"
                     />
-                    <span style={{ fontWeight: 600, width: '24px' }}>{opt.label}.</span>
+                    <span className="question-modal__option-label">{opt.label}.</span>
                     <input 
                       type="text"
-                      className="form-input"
+                      className="form-input question-modal__option-input"
                       placeholder={`Nhập đáp án ${opt.label}...`}
                       value={opt.content}
                       onChange={e => handleOptionContentChange(idx, e.target.value)}
-                      style={{ flex: 1 }}
                     />
                   </div>
                 ))}
               </div>
-              <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: 'var(--color-muted)' }}>
+              <p className="modal-hint">
                 Tích chọn hình tròn (Radio) để đánh dấu đáp án đúng. Bỏ trống các ô không dùng đến nếu chỉ có 2-3 đáp án.
               </p>
             </div>

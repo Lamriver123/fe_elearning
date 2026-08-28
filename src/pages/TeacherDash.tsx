@@ -29,7 +29,7 @@ function TeacherClassesContent() {
           className="teacher-btn-primary"
           onClick={() => setIsModalOpen(true)}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
+          <span className="material-symbols-outlined" aria-hidden="true">add</span>
           Tạo lớp học mới
         </button>
       </div>
@@ -59,17 +59,10 @@ function TeacherHomeContent({ user }: { user: AuthUser }) {
         </div>
       </div>
       
-      <div style={{
-        backgroundColor: 'var(--color-surface)',
-        border: '1px solid var(--color-border)',
-        borderRadius: '12px',
-        padding: '60px 20px',
-        textAlign: 'center',
-        marginTop: '32px'
-      }}>
-        <span className="material-symbols-outlined" style={{ fontSize: '64px', color: 'var(--color-primary-soft)', marginBottom: '16px' }}>dashboard</span>
-        <h2 style={{ fontSize: '24px', fontWeight: 600, color: 'var(--color-text)', marginBottom: '8px' }}>Teacher Dashboard</h2>
-        <p style={{ color: 'var(--color-muted)', maxWidth: '500px', margin: '0 auto' }}>
+      <div className="teacher-home-panel surface-card">
+        <span className="material-symbols-outlined teacher-home-panel__icon" aria-hidden="true">dashboard</span>
+        <h2>Teacher Dashboard</h2>
+        <p>
           Đây là trang tổng quan. Chọn "Quản lý lớp học" từ menu bên trái để xem danh sách các lớp học của bạn.
         </p>
       </div>

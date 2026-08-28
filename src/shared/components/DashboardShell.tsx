@@ -1,8 +1,12 @@
 import type { ReactNode } from 'react'
-import type { AuthUser } from '../../features/auth/domain/auth.types'
+
+type DashboardShellUser = {
+  avatar?: string | null
+  fullName: string
+}
 
 type DashboardShellProps = {
-  user: AuthUser
+  user: DashboardShellUser
   title: string
   description: string
   badge: string

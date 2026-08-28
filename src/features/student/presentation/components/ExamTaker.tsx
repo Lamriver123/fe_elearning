@@ -1,14 +1,71 @@
-import { useState, useEffect, useRef } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { useStudentExamDetail } from '../../application/useStudentExams';
-import { studentExamApi } from '../../infrastructure/studentExamApi';
+import {
+  autoSaveStudentExam,
+  startStudentExam,
+  submitStudentExam,
+  uploadStudentExamAudio,
+  useStudentExamDetail,
+} from '../../application/useStudentExams';
 import { QuestionRenderer } from './QuestionRenderer';
 import type { StudentAnswerPayload } from '../../domain/studentExam.types';
+import { handleApiError } from '../../../../shared/lib/handleApiError';
 
-type AnswersState = {
-  [questionId: string]: any; // optionId, text, or Blob (for audio)
-};
+type AnswerValue = string | Blob | null;
+type AnswersState = Record<string, AnswerValue>;
+
+function ExamTakerSkeleton() {
+  return (
+    <div
+      className="exam-taker-container exam-taker-skeleton"
+      aria-label="Đang tải đề thi"
+      aria-live="polite"
+    >
+      <div className="exam-taker-header" aria-hidden="true">
+        <div className="exam-taker-skeleton__intro">
+          <span className="skeleton-line skeleton-line--lg" />
+          <span className="skeleton-line skeleton-line--sm" />
+        </div>
+        <div className="exam-taker-header__actions">
+          <span className="skeleton-chip" />
+          <span className="skeleton-chip" />
+        </div>
+      </div>
+
+      <div className="exam-taker-main" aria-hidden="true">
+        <div className="exam-taker-main__inner">
+          {[1, 2].map((section) => (
+            <section key={section} className="exam-taker-section">
+              <div className="exam-taker-section__header">
+                <span className="skeleton-line skeleton-line--lg" />
+                <span className="skeleton-chip" />
+                <div className="exam-taker-instructions">
+                  <span className="skeleton-line skeleton-line--md" />
+                  <span className="skeleton-line" />
+                  <span className="skeleton-line skeleton-line--lg" />
+                </div>
+              </div>
+              <div className="question-card">
+                <div className="question-card__head">
+                  <span className="skeleton-line skeleton-line--md" />
+                  <span className="skeleton-chip" />
+                </div>
+                <span className="skeleton-line skeleton-line--lg" />
+                <span className="skeleton-line skeleton-line--md" />
+                <div className="question-card__options">
+                  <span className="skeleton-line" />
+                  <span className="skeleton-line" />
+                  <span className="skeleton-line" />
+                </div>
+              </div>
+            </section>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function ExamTaker({ classId }: { classId: string }) {
   const { examId } = useParams<{ examId: string }>();
@@ -26,7 +83,7 @@ export function ExamTaker({ classId }: { classId: string }) {
   // Initialize time and restore cached answers
   useEffect(() => {
     if (exam && !isLoading && classId && examId) {
-      studentExamApi.startExam(classId, examId).then((res) => {
+      startStudentExam(classId, examId).then((res) => {
         if (res.isSubmitted) {
           toast.error("Bài thi này đã được nộp!");
           navigate(`/student/courses/${classId}/exams`);
@@ -40,7 +97,9 @@ export function ExamTaker({ classId }: { classId: string }) {
         if (cachedAnswersStr) {
           try {
             mergedAnswers = { ...mergedAnswers, ...JSON.parse(cachedAnswersStr) };
-          } catch (e) {}
+          } catch {
+            // Ignore malformed cached answers from older sessions.
+          }
         }
         setAnswers(mergedAnswers);
         answersRef.current = mergedAnswers;
@@ -56,41 +115,12 @@ export function ExamTaker({ classId }: { classId: string }) {
           }
         }
       }).catch(err => {
-        console.error(err);
+        toast.error(handleApiError(err, 'Không thể bắt đầu bài thi. Vui lòng thử lại.'));
       });
     }
   }, [exam, isLoading, classId, examId, navigate]);
 
-  // Timer logic
-  useEffect(() => {
-    if (exam?.classSettings?.durationMinutes && !isSubmitting) {
-      if (timeLeft === 0) {
-        handleAutoSubmit();
-      } else if (timeLeft > 0) {
-        timerRef.current = setInterval(() => {
-          setTimeLeft(prev => {
-            if (prev <= 1) {
-              clearInterval(timerRef.current!);
-              handleAutoSubmit();
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-      }
-    }
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [exam, timeLeft, isSubmitting]);
-
-  const handleAutoSubmit = () => {
-    toast('Hết giờ làm bài! Hệ thống đang tự động nộp bài...', { icon: '⏳', id: 'auto-submit' });
-    handleSubmit(new Event('submit') as any, true);
-  };
-
-  const handleAnswerChange = (questionId: string, value: any) => {
+  const handleAnswerChange = (questionId: string, value: AnswerValue) => {
     setAnswers(prev => {
       const newAnswers = { ...prev, [questionId]: value };
       answersRef.current = newAnswers;
@@ -103,14 +133,14 @@ export function ExamTaker({ classId }: { classId: string }) {
       localStorage.setItem(`exam_answers_${classId}_${examId}`, JSON.stringify(stringAnswers));
       
       if (classId && examId) {
-        studentExamApi.autoSaveExam(classId, examId, stringAnswers).catch(() => {});
+        autoSaveStudentExam(classId, examId, stringAnswers).catch(() => {});
       }
       
       return newAnswers;
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent, isAutoSubmit = false) => {
+  const handleSubmit = useCallback(async (e?: React.FormEvent, isAutoSubmit = false) => {
     e?.preventDefault();
     if (!exam || !classId || !examId) return;
 
@@ -139,14 +169,14 @@ export function ExamTaker({ classId }: { classId: string }) {
           } else if (q.questionType === 'AUDIO_RESPONSE') {
             // Upload audio blob first
             toast.loading(`Đang tải lên audio câu hỏi ${q.orderIndex}...`, { id: toastId });
-            const audioUrl = await studentExamApi.uploadAudio(classId, examId, val as Blob);
+            const audioUrl = await uploadStudentExamAudio(classId, examId, val as Blob);
             formattedAnswers.push({ questionId: q.id, audioUrl: audioUrl });
           }
         }
       }
 
       toast.loading('Đang nộp bài...', { id: toastId });
-      const res = await studentExamApi.submitExam(classId, examId, { answers: formattedAnswers });
+      const res = await submitStudentExam(classId, examId, { answers: formattedAnswers });
       
       // Clear localStorage after successful submit
       localStorage.removeItem(`exam_answers_${classId}_${examId}`);
@@ -156,8 +186,8 @@ export function ExamTaker({ classId }: { classId: string }) {
       
       // Chuyển về danh sách exam hoặc trang kết quả
       navigate(`/student/courses/${classId}/exams`);
-    } catch (err: any) {
-      toast.error(err.message || 'Lỗi khi nộp bài. Vui lòng thử lại.');
+    } catch (err) {
+      toast.error(handleApiError(err, 'Lỗi khi nộp bài. Vui lòng thử lại.'));
       setIsSubmitting(false);
       // Resume timer if not auto submit
       if (!isAutoSubmit && timeLeft > 0) {
@@ -166,7 +196,36 @@ export function ExamTaker({ classId }: { classId: string }) {
         }, 1000);
       }
     }
-  };
+  }, [classId, exam, examId, navigate, timeLeft]);
+
+  const handleAutoSubmit = useCallback(() => {
+    toast('Hết giờ làm bài! Hệ thống đang tự động nộp bài...', { id: 'auto-submit' });
+    void handleSubmit(undefined, true);
+  }, [handleSubmit]);
+
+  // Timer logic
+  useEffect(() => {
+    if (exam?.classSettings?.durationMinutes && !isSubmitting) {
+      if (timeLeft === 0) {
+        handleAutoSubmit();
+      } else if (timeLeft > 0) {
+        timerRef.current = setInterval(() => {
+          setTimeLeft(prev => {
+            if (prev <= 1) {
+              clearInterval(timerRef.current!);
+              handleAutoSubmit();
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      }
+    }
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [exam, timeLeft, isSubmitting, handleAutoSubmit]);
 
   const formatTimeLeft = () => {
     const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
@@ -174,97 +233,74 @@ export function ExamTaker({ classId }: { classId: string }) {
     return `${m}:${s}`;
   };
 
-  if (isLoading) return <div style={{ padding: '40px', textAlign: 'center' }}>Đang tải đề thi...</div>;
-  if (error || !exam) return <div style={{ padding: '40px', textAlign: 'center' }}>Lỗi: {error}</div>;
+  if (isLoading) {
+    return <ExamTakerSkeleton />;
+  }
+
+  if (error || !exam) {
+    return (
+      <div className="page-state page-state--error">
+        <span className="material-symbols-outlined page-state__icon page-state__icon--error" aria-hidden="true">error</span>
+        <p>Lỗi: {error}</p>
+      </div>
+    );
+  }
 
   const isWarningTime = timeLeft <= 300; // <= 5 minutes
 
   return (
-    <div className="exam-taker-container" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Header Sticky */}
-      <div style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        backgroundColor: 'var(--color-surface)',
-        borderBottom: '1px solid var(--color-border)',
-        padding: '16px 24px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-      }}>
+    <div className="exam-taker-container">
+      <div className="exam-taker-header">
         <div>
-          <h2 style={{ margin: 0, fontSize: '20px' }}>{exam.title}</h2>
-          <p style={{ margin: 0, color: 'var(--color-muted)', fontSize: '14px' }}>Tổng điểm: {exam.totalPoints}</p>
+          <h2 className="exam-taker-header__title">{exam.title}</h2>
+          <p className="exam-taker-header__subtitle">Tổng điểm: {exam.totalPoints}</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+        <div className="exam-taker-header__actions">
           {exam?.classSettings?.durationMinutes && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 16px',
-              borderRadius: '24px',
-              backgroundColor: isWarningTime ? 'rgba(244, 67, 54, 0.1)' : 'var(--color-surface-soft)',
-              color: isWarningTime ? '#f44336' : 'var(--color-text)',
-              fontWeight: 700,
-              fontSize: '18px'
-            }}>
-              <span className="material-symbols-outlined" style={{ animation: isWarningTime ? 'pulse 1s infinite' : 'none' }}>
-                timer
-              </span>
+            <div className={`exam-taker-timer ${isWarningTime ? 'exam-taker-timer--warning' : ''}`}>
+              <span className="material-symbols-outlined" aria-hidden="true">timer</span>
               {formatTimeLeft()}
             </div>
           )}
           <button 
-            onClick={(e) => handleSubmit(e, false)}
+            className="teacher-btn-primary"
+            type="button"
+            onClick={() => void handleSubmit(undefined, false)}
             disabled={isSubmitting}
-            style={{
-              padding: '10px 24px',
-              backgroundColor: 'var(--color-primary)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontWeight: 600,
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              opacity: isSubmitting ? 0.7 : 1
-            }}
           >
             {isSubmitting ? 'Đang nộp...' : 'Nộp bài'}
           </button>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div style={{ flex: 1, backgroundColor: 'var(--color-background)', padding: '32px 24px' }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+      <div className="exam-taker-main">
+        <div className="exam-taker-main__inner">
           {exam.sections.map((section, sIdx) => (
-            <div key={section.id} style={{ marginBottom: '40px' }}>
-              <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '2px solid var(--color-border)' }}>
-                <h3 style={{ margin: '0 0 8px 0', fontSize: '20px' }}>Phần {sIdx + 1}: {section.title}</h3>
-                <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                  <span style={{ padding: '4px 8px', backgroundColor: 'var(--color-surface-soft)', borderRadius: '4px', fontSize: '12px', fontWeight: 600 }}>
+            <div key={section.id} className="exam-taker-section">
+              <div className="exam-taker-section__header">
+                <h3 className="exam-taker-section__title">Phần {sIdx + 1}: {section.title}</h3>
+                <div className="exam-taker-section__meta">
+                  <span className="metric-pill">
                     Kỹ năng: {section.skillType}
                   </span>
                 </div>
                 {section.files && section.files.length > 0 && (
-                  <div style={{ marginBottom: '16px' }}>
-                    {section.files.map((f: any) => (
-                      <div key={f.id} style={{ marginBottom: '12px' }}>
+                  <div className="exam-taker-section__files">
+                    {section.files.map((f) => (
+                      <div key={f.id}>
                         {f.fileType === 'AUDIO' && (
-                          <div style={{ backgroundColor: 'var(--color-surface)', padding: '16px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                              <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>headphones</span>
-                              <span style={{ fontWeight: 600 }}>Audio bài nghe</span>
+                          <div className="exam-taker-file exam-taker-file--audio">
+                            <div className="exam-taker-file__head">
+                              <span className="material-symbols-outlined" aria-hidden="true">headphones</span>
+                              <span>Audio bài nghe</span>
                             </div>
-                            <audio controls src={f.fileUrl} style={{ width: '100%' }} />
+                            <audio controls src={f.fileUrl} />
                           </div>
                         )}
                         {f.fileType !== 'AUDIO' && (
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: 'var(--color-surface)', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                            <span className="material-symbols-outlined">attach_file</span>
-                            <a href={f.fileUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 500 }}>
+                          <div className="exam-taker-file">
+                            <span className="material-symbols-outlined" aria-hidden="true">attach_file</span>
+                            <a href={f.fileUrl} target="_blank" rel="noopener noreferrer">
                               Tài liệu đính kèm
                             </a>
                           </div>
@@ -274,11 +310,11 @@ export function ExamTaker({ classId }: { classId: string }) {
                   </div>
                 )}
                 {section.instructions && (
-                  <div style={{ padding: '16px', backgroundColor: 'var(--color-surface-soft)', borderLeft: '4px solid var(--color-primary)', borderRadius: '4px', marginBottom: '24px' }}>
-                    <span style={{ fontWeight: 600, display: 'block', marginBottom: '8px', color: 'var(--color-muted)' }}>
+                  <div className="exam-taker-instructions">
+                    <span className="exam-taker-instructions__label">
                       {section.skillType === 'READING' ? 'Nội dung bài đọc:' : 'Hướng dẫn làm bài:'}
                     </span>
-                    <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.8', color: 'var(--color-text)' }}>{section.instructions}</div>
+                    <div className="exam-taker-instructions__content">{section.instructions}</div>
                   </div>
                 )}
               </div>
@@ -289,7 +325,7 @@ export function ExamTaker({ classId }: { classId: string }) {
                     key={q.id}
                     question={q}
                     index={qIdx + 1}
-                    value={answers[q.id]}
+                    value={answers[q.id] ?? null}
                     onChange={(val) => handleAnswerChange(q.id, val)}
                   />
                 ))}
