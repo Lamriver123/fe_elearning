@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { classesApi } from '../infrastructure/classesApi'
 import type { ClassInfo } from '../domain/teacher.types'
 import { ApiError } from '../../../shared/lib/httpClient'
 import { toast } from 'react-hot-toast'
+import { getTeacherClasses } from './classUseCases'
 
 export function useClasses() {
   const [classes, setClasses] = useState<ClassInfo[]>([])
@@ -13,7 +13,7 @@ export function useClasses() {
     try {
       setIsLoading(true)
       setError(null)
-      const data = await classesApi.getMyClasses()
+      const data = await getTeacherClasses()
       
       const classesWithMock = data.map((cls, index) => {
         // Ánh xạ trạng thái từ backend: ACTIVE -> ongoing, DELETE -> finished

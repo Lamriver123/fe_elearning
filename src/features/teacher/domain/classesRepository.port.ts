@@ -1,4 +1,4 @@
-import type { ClassInfo } from './teacher.types'
+import type { ClassInfo, TeacherClassDetailInfo } from './teacher.types'
 
 export type CreateClassResult = {
   message: string
@@ -7,5 +7,6 @@ export type CreateClassResult = {
 
 export type TeacherClassesRepository = {
   getMyClasses(): Promise<ClassInfo[]>
+  getClassDetail(classId: string): Promise<TeacherClassDetailInfo>
   createClass(formData: FormData): Promise<CreateClassResult>
 }

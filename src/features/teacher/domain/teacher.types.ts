@@ -11,3 +11,8 @@ export type ClassInfo = {
   statusMock?: 'ongoing' | 'finished' | 'upcoming'
   scheduleMock?: string
 }
+
+export type TeacherClassDetailInfo = ClassInfo & {
+  teacherName?: string
+  teacherEmail?: string
+}

@@ -7,11 +7,10 @@ import '../styles/student-dashboard.css'
 
 type StudentLayoutProps = {
   user: AuthUser
-  onLogout: () => Promise<void>
   children: ReactNode
 }
 
-export function StudentLayout({ user, onLogout, children }: StudentLayoutProps) {
+export function StudentLayout({ user, children }: StudentLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   return (
@@ -20,7 +19,7 @@ export function StudentLayout({ user, onLogout, children }: StudentLayoutProps) 
         {isSidebarOpen && (
           <div className="student-sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
         )}
-        <StudentSidebar onLogout={onLogout} />
+        <StudentSidebar />
       </div>
       
       <div className="student-main-wrapper">

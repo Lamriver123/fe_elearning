@@ -1,16 +1,33 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { toast } from 'react-hot-toast'
 import { useAuth } from '../features/auth/application/useAuth'
+import type { AuthUser } from '../features/auth/domain/auth.types'
 import { useUserProfile } from '../features/user/application/useUserProfile'
 import type { UpdateProfilePayload, ChangePasswordPayload } from '../features/user/domain/user.types'
 import { USER_ROLES } from '../shared/constants/roles'
 
-export default function UserProfile() {
+type UserProfileProps = {
+  onLogout: () => Promise<void>
+}
+
+function getProfileForm(user: AuthUser | null): UpdateProfilePayload {
+  return {
+    fullName: user?.fullName || '',
+    phone: user?.phone || '',
+    dateOfBirth: user?.dateOfBirth ? user.dateOfBirth.split('T')[0] : '',
+    gender: user?.gender || '',
+    address: user?.address || '',
+    avatar: user?.avatar || '',
+  }
+}
+
+export default function UserProfile({ onLogout }: UserProfileProps) {
   const { user } = useAuth()
   const { updateProfile, changePassword, uploadAvatar, isUpdating, isChangingPassword, isUploadingAvatar } = useUserProfile()
 
   const [isEditingProfile, setIsEditingProfile] = useState(false)
   const [showPasswordForm, setShowPasswordForm] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null)
   
@@ -24,14 +41,7 @@ export default function UserProfile() {
     }
   }, [avatarPreview])
 
-  const [profileForm, setProfileForm] = useState<UpdateProfilePayload>({
-    fullName: '',
-    phone: '',
-    dateOfBirth: '',
-    gender: '',
-    address: '',
-    avatar: '',
-  })
+  const [profileForm, setProfileForm] = useState<UpdateProfilePayload>(() => getProfileForm(user))
 
   const [passwordForm, setPasswordForm] = useState<ChangePasswordPayload>({
     oldPassword: '',
@@ -40,22 +50,14 @@ export default function UserProfile() {
   
   const [confirmPassword, setConfirmPassword] = useState('')
 
-  useEffect(() => {
-    if (user) {
-      setProfileForm({
-        fullName: user.fullName || '',
-        phone: user.phone || '',
-        dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split('T')[0] : '', // format YYYY-MM-DD
-        gender: user.gender || '',
-        address: user.address || '',
-        avatar: user.avatar || '',
-      })
-    }
-  }, [user])
-
   const handleProfileChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setProfileForm(prev => ({ ...prev, [name]: value }))
+  }
+
+  const startEditingProfile = () => {
+    setProfileForm(getProfileForm(user))
+    setIsEditingProfile(true)
   }
 
   const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -117,6 +119,11 @@ export default function UserProfile() {
     }
     setAvatarPreview(null)
     setSelectedAvatarFile(null)
+  }
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    await onLogout()
   }
 
   if (!user) return null
@@ -204,7 +211,7 @@ export default function UserProfile() {
                   <p>{user.email}</p>
                 </div>
                 {!isEditingProfile && (
-                  <button type="button" className="secondary-action profile-edit-btn" onClick={() => setIsEditingProfile(true)}>
+                  <button type="button" className="secondary-action profile-edit-btn" onClick={startEditingProfile}>
                     Sửa thông tin
                   </button>
                 )}
@@ -322,6 +329,22 @@ export default function UserProfile() {
               </div>
             </form>
           )}
+
+          <div className="profile-account-actions">
+            <div>
+              <h3>Phiên đăng nhập</h3>
+              <p>Thoát khỏi tài khoản trên thiết bị hiện tại.</p>
+            </div>
+            <button
+              type="button"
+              className="secondary-action profile-logout-btn"
+              onClick={() => void handleLogout()}
+              disabled={isLoggingOut}
+            >
+              <span className="material-symbols-outlined" aria-hidden="true">logout</span>
+              {isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
+            </button>
+          </div>
         </section>
 
       </div>

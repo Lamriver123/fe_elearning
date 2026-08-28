@@ -120,20 +120,6 @@
   font-variation-settings: 'FILL' 1;
 }
 
-.teacher-sidebar__footer {
-  padding: 16px;
-  margin-top: auto;
-}
-
-.teacher-sidebar__logout {
-  color: var(--color-muted);
-}
-
-.teacher-sidebar__logout:hover {
-  background-color: rgba(186, 26, 26, 0.1); /* error-container/20 roughly */
-  color: var(--color-error);
-}
-
 /* Header */
 .teacher-header {
   position: fixed;
@@ -864,6 +850,153 @@
   gap: 12px;
 }
 
+.student-invite {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+.student-invite__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.student-invite__header h3 {
+  color: var(--color-text);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.student-invite__header p {
+  color: var(--color-muted);
+  font-size: 0.86rem;
+  margin-top: 2px;
+}
+
+.student-invite__search {
+  position: relative;
+  min-width: 0;
+}
+
+.student-invite__search-icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  color: var(--color-muted-soft);
+  font-size: 20px;
+  transform: translateY(-50%);
+}
+
+.student-invite__search-input {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 14px 10px 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  outline: none;
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.student-invite__search-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(0, 100, 146, 0.12);
+}
+
+.student-invite__results,
+.student-invite__loading {
+  display: grid;
+  gap: 8px;
+}
+
+.student-invite__result {
+  min-width: 0;
+  min-height: 68px;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-soft);
+}
+
+.student-invite__avatar {
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--color-border-soft);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.student-invite__candidate {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.student-invite__candidate strong,
+.student-invite__candidate span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-invite__candidate strong {
+  color: var(--color-text);
+  font-size: 0.92rem;
+}
+
+.student-invite__candidate span {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+.student-invite__action {
+  min-width: 92px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: var(--radius-control);
+  box-shadow: none;
+}
+
+.student-invite__state {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-soft);
+  color: var(--color-muted);
+  font-weight: 650;
+}
+
+.student-invite__state--error {
+  border-color: rgba(186, 26, 26, 0.28);
+  background: var(--color-error-soft);
+  color: var(--color-error);
+}
+
+.student-invite__result--skeleton {
+  background: var(--color-surface);
+}
+
+.student-invite__result--skeleton .skeleton-chip {
+  width: 76px;
+  height: 34px;
+}
+
 /* Summary */
 .student-list-summary {
   display: flex;
@@ -1335,11 +1468,24 @@
 .teacher-header__avatar {
   width: 40px;
   height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding: 0;
   border: 2px solid var(--color-primary-soft);
+  border-radius: 50%;
+  background: var(--color-surface);
+  line-height: 0;
+  overflow: hidden;
 }
 
 .teacher-header__avatar img {
   display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
 }
 
 .teacher-main {
@@ -2487,6 +2633,13 @@
   color: var(--color-error);
 }
 
+.student-detail-modal__action-cancel-invite {
+  width: 100%;
+  border: 1px solid rgba(230, 81, 0, 0.32);
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
 @media (max-width: 768px) {
   .teacher-header {
     padding: 0 16px;
@@ -2560,6 +2713,30 @@
 
   .teacher-page-header .teacher-btn-primary,
   .teacher-page-header .teacher-btn-outline {
+    width: 100%;
+  }
+
+  .student-invite {
+    padding: 14px;
+  }
+
+  .student-invite__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .student-invite__result {
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .student-invite__avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .student-invite__action {
+    grid-column: 1 / -1;
     width: 100%;
   }
 

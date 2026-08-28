@@ -1,10 +1,6 @@
 import { NavLink, Link } from 'react-router-dom'
 
-type TeacherSidebarProps = {
-  onLogout: () => Promise<void>
-}
-
-export function TeacherSidebar({ onLogout }: TeacherSidebarProps) {
+export function TeacherSidebar() {
   const navItems = [
     { name: 'Quản lý lớp học', path: '/teacher/classes', icon: 'school' },
     { name: 'Quản lý đề thi', path: '/teacher/exams', icon: 'quiz' },
@@ -40,17 +36,6 @@ export function TeacherSidebar({ onLogout }: TeacherSidebarProps) {
           </NavLink>
         ))}
       </nav>
-
-      <div className="teacher-sidebar__footer">
-        <button
-          onClick={() => void onLogout()}
-          className="teacher-sidebar__nav-item teacher-sidebar__logout"
-          type="button"
-        >
-          <span className="material-symbols-outlined" aria-hidden="true">logout</span>
-          <span>Đăng xuất</span>
-        </button>
-      </div>
     </aside>
   )
 }

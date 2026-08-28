@@ -10,3 +10,8 @@ export type StudentClassInfo = {
   joinedAt: string
   memberStatus: 'APPROVED' | 'PENDING' | 'REJECTED' | 'INVITED'
 }
+
+export type StudentClassDetailInfo = StudentClassInfo & {
+  teacherEmail?: string
+  studentsCount?: number
+}

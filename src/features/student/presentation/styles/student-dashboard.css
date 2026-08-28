@@ -100,17 +100,6 @@
   font-variation-settings: 'FILL' 1;
 }
 
-.student-sidebar__logout {
-  margin-top: auto;
-}
-
-.student-sidebar__logout-button {
-  width: 100%;
-  border: 0;
-  background: transparent;
-  text-align: left;
-}
-
 /* Main Content Wrapper */
 .student-main-wrapper {
   margin-left: 256px;
@@ -209,6 +198,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
+  overflow: hidden;
   object-fit: cover;
   border: 1px solid var(--color-border);
   margin-left: 8px;
@@ -1634,15 +1624,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   padding: 0;
   border: 2px solid var(--color-primary-soft);
+  border-radius: 50%;
   background: var(--color-surface);
+  line-height: 0;
+  overflow: hidden;
 }
 
 .student-header__avatar img {
   display: block;
   width: 100%;
   height: 100%;
+  border-radius: inherit;
   object-fit: cover;
 }
 

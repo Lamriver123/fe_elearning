@@ -1,10 +1,6 @@
 import { NavLink, Link } from 'react-router-dom'
 
-type StudentSidebarProps = {
-  onLogout: () => Promise<void>
-}
-
-export function StudentSidebar({ onLogout }: StudentSidebarProps) {
+export function StudentSidebar() {
   const navItems = [
     { name: 'Lớp học của tôi', path: '/student/courses', icon: 'school' },
     { name: 'Đề thi', path: '/student/exams', icon: 'quiz' },
@@ -40,17 +36,6 @@ export function StudentSidebar({ onLogout }: StudentSidebarProps) {
           </NavLink>
         ))}
       </nav>
-
-      <div className="student-sidebar__logout">
-        <button
-          onClick={() => void onLogout()}
-          className="student-sidebar__nav-item student-sidebar__logout-button"
-          type="button"
-        >
-          <span className="material-symbols-outlined" aria-hidden="true">logout</span>
-          <span>Đăng xuất</span>
-        </button>
-      </div>
     </aside>
   )
 }

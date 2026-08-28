@@ -29,16 +29,15 @@ function StudentDashboardContent({ user }: { user: AuthUser }) {
 
 function StudentHome({ user, onLogout }: StudentHomeProps) {
   return (
-    <StudentLayout user={user} onLogout={onLogout}>
+    <StudentLayout user={user}>
       <Routes>
         <Route path="/" element={<StudentDashboardContent user={user} />} />
         <Route path="courses" element={<StudentClasses />} />
         <Route path="courses/:classId/*" element={<StudentClassDetail />} />
-        <Route path="profile" element={<UserProfile />} />
+        <Route path="profile" element={<UserProfile onLogout={onLogout} />} />
       </Routes>
     </StudentLayout>
   )
 }
 
 export default StudentHome
-

@@ -8,10 +8,9 @@ import '../styles/teacher-dashboard.css'
 type TeacherLayoutProps = {
   children: ReactNode
   user: AuthUser
-  onLogout: () => Promise<void>
 }
 
-export function TeacherLayout({ children, user, onLogout }: TeacherLayoutProps) {
+export function TeacherLayout({ children, user }: TeacherLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -21,7 +20,7 @@ export function TeacherLayout({ children, user, onLogout }: TeacherLayoutProps) 
         {isSidebarOpen && (
           <div className="teacher-sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
         )}
-        <TeacherSidebar onLogout={onLogout} />
+        <TeacherSidebar />
       </div>
       
       <main className="teacher-main">

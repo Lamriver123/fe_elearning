@@ -4,6 +4,7 @@ import { ExamDetail } from './ExamDetail.tsx';
 import { CreateExam } from './CreateExam.tsx';
 import { SubmissionGrader } from './SubmissionGrader.tsx';
 import { StudentListTab } from './StudentListTab.tsx';
+import { TeacherClassOverview } from './TeacherClassOverview.tsx';
 
 export function ClassDetail() {
   const { classId } = useParams<{ classId: string }>();
@@ -57,12 +58,7 @@ export function ClassDetail() {
       </div>
 
       <Routes>
-        <Route path="/" element={
-          <div className="page-state">
-            <span className="material-symbols-outlined page-state__icon" aria-hidden="true">info</span>
-            <h3 className="page-state__title">Thông tin chung đang được phát triển</h3>
-          </div>
-        } />
+        <Route path="/" element={<TeacherClassOverview classId={classId} />} />
         <Route path="exams" element={<ExamList classId={classId} />} />
         <Route path="exams/create" element={<CreateExam />} />
         <Route path="exams/:examId" element={<ExamDetail />} />

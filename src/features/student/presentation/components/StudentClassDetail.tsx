@@ -2,11 +2,23 @@ import { useParams, Routes, Route, useNavigate, Link, useLocation } from 'react-
 import { StudentExamList } from './StudentExamList';
 import { ExamTaker } from './ExamTaker';
 import { StudentExamResult } from './StudentExamResult';
+import { StudentClassOverview } from './StudentClassOverview';
 
 export function StudentClassDetail() {
   const { classId } = useParams<{ classId: string }>();
   const location = useLocation();
   const navigate = useNavigate();
+
+  if (!classId) {
+    return (
+      <div className="student-content-container student-class-detail">
+        <div className="page-state page-state--error">
+          <span className="material-symbols-outlined page-state__icon page-state__icon--error" aria-hidden="true">error</span>
+          <p>Không tìm thấy lớp học</p>
+        </div>
+      </div>
+    );
+  }
 
   // Simple tabs
   const tabs = [
@@ -25,8 +37,8 @@ export function StudentClassDetail() {
   if (isTakingExam) {
     return (
       <Routes>
-        <Route path="exams/:examId" element={<ExamTaker classId={classId!} />} />
-        <Route path="exams/:examId/result" element={<StudentExamResult classId={classId!} />} />
+        <Route path="exams/:examId" element={<ExamTaker classId={classId} />} />
+        <Route path="exams/:examId/result" element={<StudentExamResult classId={classId} />} />
       </Routes>
     );
   }
@@ -60,13 +72,8 @@ export function StudentClassDetail() {
       </div>
 
       <Routes>
-        <Route path="/" element={
-          <div className="page-state student-class-detail__empty">
-            <span className="material-symbols-outlined page-state__icon" aria-hidden="true">info</span>
-            <h3 className="page-state__title">Thông tin lớp học đang được cập nhật</h3>
-          </div>
-        } />
-        <Route path="exams" element={<StudentExamList classId={classId!} />} />
+        <Route path="/" element={<StudentClassOverview classId={classId} />} />
+        <Route path="exams" element={<StudentExamList classId={classId} />} />
         <Route path="materials" element={
           <div className="page-state student-class-detail__empty">
             <span className="material-symbols-outlined page-state__icon" aria-hidden="true">folder_open</span>

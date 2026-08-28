@@ -72,12 +72,12 @@ function TeacherHomeContent({ user }: { user: AuthUser }) {
 
 export default function TeacherApp({ user, onLogout }: TeacherAppProps) {
   return (
-    <TeacherLayout user={user} onLogout={onLogout}>
+    <TeacherLayout user={user}>
       <Routes>
         <Route path="/" element={<TeacherHomeContent user={user} />} />
         <Route path="classes" element={<TeacherClassesContent />} />
         <Route path="classes/:classId/*" element={<ClassDetail />} />
-        <Route path="profile" element={<UserProfile />} />
+        <Route path="profile" element={<UserProfile onLogout={onLogout} />} />
       </Routes>
     </TeacherLayout>
   )

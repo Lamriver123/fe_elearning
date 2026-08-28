@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useClassMembers } from '../../application/useClassMembers';
-import type { ClassMemberStatus, StudentMember } from '../../domain/classMember.types';
+import type { ClassInviteCandidate, ClassMemberStatus, StudentMember } from '../../domain/classMember.types';
 
 function formatDate(dateStr?: string) {
   if (!dateStr) return '—';
@@ -26,14 +26,40 @@ function getGenderLabel(gender?: string) {
   }
 }
 
+function getAvatarUrl(fullName: string, avatar?: string) {
+  return avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
+}
+
 function getAvatarSrc(member: StudentMember) {
-  return member.student.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.student.fullName)}&background=random`;
+  return getAvatarUrl(member.student.fullName, member.student.avatar);
 }
 
 export function StudentListTab({ classId }: { classId: string }) {
-  const { members, isLoading, error, updateMemberStatus, removeMember } = useClassMembers(classId);
+  const {
+    members,
+    isLoading,
+    error,
+    inviteCandidates,
+    isSearchingInviteCandidates,
+    inviteSearchError,
+    isInvitingStudent,
+    searchInviteCandidates,
+    inviteStudent,
+    updateMemberStatus,
+    removeMember,
+    cancelInvitation,
+  } = useClassMembers(classId);
   const [selectedStudent, setSelectedStudent] = useState<StudentMember | null>(null);
   const [filter, setFilter] = useState<'ALL' | 'APPROVED' | 'PENDING' | 'INVITED'>('ALL');
+  const [inviteQuery, setInviteQuery] = useState('');
+
+  useEffect(() => {
+    const timerId = window.setTimeout(() => {
+      void searchInviteCandidates(inviteQuery);
+    }, 280);
+
+    return () => window.clearTimeout(timerId);
+  }, [inviteQuery, searchInviteCandidates]);
 
   const handleApprove = async (studentId: string, status: Extract<ClassMemberStatus, 'APPROVED' | 'REJECTED'>) => {
     const success = await updateMemberStatus(studentId, status);
@@ -47,6 +73,21 @@ export function StudentListTab({ classId }: { classId: string }) {
     const success = await removeMember(studentId);
     if (success) {
       setSelectedStudent(null);
+    }
+  };
+
+  const handleCancelInvitation = async (studentId: string) => {
+    if (!window.confirm('Bạn có chắc chắn muốn hủy lời mời này?')) return;
+    const success = await cancelInvitation(studentId);
+    if (success) {
+      setSelectedStudent(null);
+    }
+  };
+
+  const handleInviteStudent = async (candidate: ClassInviteCandidate) => {
+    const success = await inviteStudent(candidate);
+    if (success) {
+      setInviteQuery('');
     }
   };
 
@@ -82,6 +123,80 @@ export function StudentListTab({ classId }: { classId: string }) {
 
   return (
     <div className="student-list">
+      <section className="student-invite surface-card">
+        <div className="student-invite__header">
+          <div>
+            <h3>Mời học sinh</h3>
+            <p>Tìm bằng email hoặc user name</p>
+          </div>
+        </div>
+
+        <div className="student-invite__search">
+          <span className="material-symbols-outlined student-invite__search-icon" aria-hidden="true">search</span>
+          <input
+            className="student-invite__search-input"
+            type="search"
+            value={inviteQuery}
+            onChange={(event) => setInviteQuery(event.target.value)}
+            placeholder="Email hoặc user name"
+            aria-label="Tìm học sinh để mời"
+          />
+        </div>
+
+        {inviteQuery.trim().length >= 2 && (
+          <div className="student-invite__results">
+            {isSearchingInviteCandidates ? (
+              <div className="student-invite__loading" aria-label="Đang tìm học sinh">
+                {[1, 2].map((item) => (
+                  <div key={item} className="student-invite__result student-invite__result--skeleton" aria-hidden="true">
+                    <span className="skeleton-avatar" />
+                    <div className="student-invite__candidate">
+                      <span className="skeleton-line skeleton-line--md" />
+                      <span className="skeleton-line skeleton-line--sm" />
+                    </div>
+                    <span className="skeleton-chip" />
+                  </div>
+                ))}
+              </div>
+            ) : inviteSearchError ? (
+              <div className="student-invite__state student-invite__state--error">
+                <span className="material-symbols-outlined" aria-hidden="true">error</span>
+                {inviteSearchError}
+              </div>
+            ) : inviteCandidates.length === 0 ? (
+              <div className="student-invite__state">
+                <span className="material-symbols-outlined" aria-hidden="true">person_search</span>
+                Không tìm thấy học sinh phù hợp
+              </div>
+            ) : (
+              inviteCandidates.map((candidate) => (
+                <div key={candidate.id} className="student-invite__result">
+                  <img
+                    className="student-invite__avatar"
+                    src={getAvatarUrl(candidate.fullName, candidate.avatar)}
+                    alt={candidate.fullName}
+                  />
+                  <div className="student-invite__candidate">
+                    <strong>{candidate.fullName}</strong>
+                    <span>{candidate.email}</span>
+                    {candidate.userName && <span>@{candidate.userName}</span>}
+                  </div>
+                  <button
+                    className="teacher-btn-primary student-invite__action"
+                    type="button"
+                    onClick={() => void handleInviteStudent(candidate)}
+                    disabled={isInvitingStudent}
+                  >
+                    <span className="material-symbols-outlined" aria-hidden="true">mail</span>
+                    {isInvitingStudent ? 'Đang mời' : 'Mời'}
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </section>
+
       {/* Summary */}
       <div className="student-list-summary">
         <div className="student-list-summary__item">
@@ -286,6 +401,15 @@ export function StudentListTab({ classId }: { classId: string }) {
                   onClick={() => handleKick(selectedStudent.student.id)}
                 >
                   Xóa khỏi lớp
+                </button>
+              )}
+              {selectedStudent.status === 'INVITED' && (
+                <button 
+                  className="student-detail-modal__action-cancel-invite"
+                  type="button"
+                  onClick={() => handleCancelInvitation(selectedStudent.student.id)}
+                >
+                  Hủy lời mời
                 </button>
               )}
             </div>

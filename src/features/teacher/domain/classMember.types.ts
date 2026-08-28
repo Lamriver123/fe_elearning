@@ -17,3 +17,11 @@ export type StudentMember = {
     createdAt: string;
   };
 };
+
+export type ClassInviteCandidate = {
+  id: string;
+  fullName: string;
+  userName?: string;
+  email: string;
+  avatar?: string;
+};
