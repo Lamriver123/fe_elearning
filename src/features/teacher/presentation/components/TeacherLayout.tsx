@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import type { AuthUser } from '../../../auth/domain/auth.types'
 import { TeacherSidebar } from './TeacherSidebar'
 import { TeacherHeader } from './TeacherHeader'
+import { AiChatBubble } from './AiChatBubble'
 import '../styles/teacher-dashboard.css'
 
 type TeacherLayoutProps = {
@@ -26,6 +27,9 @@ export function TeacherLayout({ children, user }: TeacherLayoutProps) {
       <main className="teacher-main">
         {children}
       </main>
+
+      <AiChatBubble />
     </div>
   )
 }
+
