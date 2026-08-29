@@ -3,6 +3,7 @@ import { StudentExamList } from './StudentExamList';
 import { ExamTaker } from './ExamTaker';
 import { StudentExamResult } from './StudentExamResult';
 import { StudentClassOverview } from './StudentClassOverview';
+import { StudentClassVocabulary } from '../../../vocabulary/presentation/components/StudentClassVocabulary';
 
 export function StudentClassDetail() {
   const { classId } = useParams<{ classId: string }>();
@@ -24,10 +25,12 @@ export function StudentClassDetail() {
   const tabs = [
     { id: 'overview', label: 'Thông tin chung', path: `/student/courses/${classId}` },
     { id: 'exams', label: 'Bài kiểm tra', path: `/student/courses/${classId}/exams` },
+    { id: 'vocabulary', label: 'Từ vựng', path: `/student/courses/${classId}/vocabulary` },
     { id: 'materials', label: 'Tài liệu', path: `/student/courses/${classId}/materials` },
   ];
 
   const currentTab = location.pathname.includes('/exams') ? 'exams' : 
+                     location.pathname.includes('/vocabulary') ? 'vocabulary' :
                      location.pathname.includes('/materials') ? 'materials' : 'overview';
 
   // If we are taking an exam, we probably want to hide the standard tabs and header
@@ -74,6 +77,7 @@ export function StudentClassDetail() {
       <Routes>
         <Route path="/" element={<StudentClassOverview classId={classId} />} />
         <Route path="exams" element={<StudentExamList classId={classId} />} />
+        <Route path="vocabulary" element={<StudentClassVocabulary classId={classId} />} />
         <Route path="materials" element={
           <div className="page-state student-class-detail__empty">
             <span className="material-symbols-outlined page-state__icon" aria-hidden="true">folder_open</span>

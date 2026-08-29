@@ -5,6 +5,7 @@ export type ApiErrorPayload = {
   message?: string | string[]
   error?: string
   statusCode?: number
+  duplicateTerms?: string[]
 }
 
 export class ApiError extends Error {

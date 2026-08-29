@@ -5,6 +5,7 @@ export function TeacherSidebar() {
     { name: 'Quản lý lớp học', path: '/teacher/classes', icon: 'school' },
     { name: 'Quản lý đề thi', path: '/teacher/exams', icon: 'quiz' },
     { name: 'Quản lý từ vựng', path: '/teacher/vocabulary', icon: 'menu_book' },
+    { name: 'Upload audio', path: '/teacher/audio', icon: 'upload_file' },
     { name: 'Thông báo', path: '/teacher/notifications', icon: 'notifications' },
     { name: 'Thông tin cá nhân', path: '/teacher/profile', icon: 'person' },
   ]

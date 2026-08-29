@@ -7,6 +7,8 @@ import { useClasses } from '../features/teacher/application/useClasses'
 import { CreateClassModal } from '../features/teacher/presentation/components/CreateClassModal'
 import { ClassDetail } from '../features/teacher/presentation/components/ClassDetail'
 import UserProfile from './UserProfile.tsx'
+import { TeacherAudioUpload } from '../features/vocabulary/presentation/components/TeacherAudioUpload'
+import { TeacherVocabularyManager } from '../features/vocabulary/presentation/components/TeacherVocabularyManager'
 
 type TeacherAppProps = {
   user: AuthUser
@@ -77,6 +79,8 @@ export default function TeacherApp({ user, onLogout }: TeacherAppProps) {
         <Route path="/" element={<TeacherHomeContent user={user} />} />
         <Route path="classes" element={<TeacherClassesContent />} />
         <Route path="classes/:classId/*" element={<ClassDetail />} />
+        <Route path="vocabulary" element={<TeacherVocabularyManager />} />
+        <Route path="audio" element={<TeacherAudioUpload />} />
         <Route path="profile" element={<UserProfile onLogout={onLogout} />} />
       </Routes>
     </TeacherLayout>
