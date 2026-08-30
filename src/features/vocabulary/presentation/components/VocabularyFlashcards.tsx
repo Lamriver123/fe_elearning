@@ -236,32 +236,6 @@ export function VocabularyFlashcards({
     })
   }, [stopPronunciationAudio])
 
-  const playPronunciationSequence = useCallback((urls: Array<string | null | undefined>) => {
-    const audioUrls = urls.filter((url): url is string => Boolean(url))
-    stopPronunciationAudio()
-    if (audioUrls.length === 0) return
-
-    const sequenceId = pronunciationSequenceRef.current
-    const playAt = (index: number) => {
-      if (pronunciationSequenceRef.current !== sequenceId || index >= audioUrls.length) return
-
-      const nextAudio = new Audio(audioUrls[index])
-      pronunciationAudioRef.current = nextAudio
-      nextAudio.onended = () => {
-        if (pronunciationSequenceRef.current !== sequenceId) return
-        pronunciationAudioRef.current = null
-        playAt(index + 1)
-      }
-      void nextAudio.play().catch(() => {
-        if (pronunciationSequenceRef.current !== sequenceId) return
-        pronunciationAudioRef.current = null
-        playAt(index + 1)
-      })
-    }
-
-    playAt(0)
-  }, [stopPronunciationAudio])
-
   useEffect(() => {
     return stopPronunciationAudio
   }, [stopPronunciationAudio])
@@ -272,7 +246,7 @@ export function VocabularyFlashcards({
       return undefined
     }
 
-    playPronunciationSequence([currentAudioUsUrl, currentAudioUkUrl])
+    playPronunciationAudio(currentAudioUsUrl || currentAudioUkUrl)
     return stopPronunciationAudio
   }, [
     activeMode,
@@ -280,7 +254,7 @@ export function VocabularyFlashcards({
     currentAudioUsUrl,
     currentAudioUkUrl,
     isFlipped,
-    playPronunciationSequence,
+    playPronunciationAudio,
     stopPronunciationAudio,
   ])
 
@@ -318,6 +292,13 @@ export function VocabularyFlashcards({
     const normalizedIndex = (nextIndex + words.length) % words.length
     setCurrentIndex(normalizedIndex)
     setIsFlipped(false)
+  }
+
+  const goToSentenceWord = (nextIndex: number) => {
+    if (sentenceWords.length === 0) return
+    const normalizedIndex = Math.max(0, Math.min(nextIndex, sentenceWords.length - 1))
+    setSentenceIndex(normalizedIndex)
+    setSentenceDraft('')
   }
 
   const toggleCard = () => {
@@ -383,7 +364,7 @@ export function VocabularyFlashcards({
       return
     }
 
-    setSentenceIndex(safeSentenceIndex + 1)
+    goToSentenceWord(safeSentenceIndex + 1)
   }
 
   const openReviewPanel = async () => {
@@ -558,34 +539,40 @@ export function VocabularyFlashcards({
                           </h2>
 
                           <div className="vocabulary-phonetics">
-                            <button
-                              type="button"
-                              className="vocabulary-sound-btn vocabulary-sound-btn--us"
-                              onClick={(event) => {
-                                event.stopPropagation()
-                                playPronunciationAudio(currentWord.audioUsUrl)
-                              }}
-                              disabled={!currentWord.audioUsUrl}
-                              tabIndex={isFlipped ? -1 : 0}
-                              aria-label="Nghe phát âm US"
-                            >
-                              <span className="material-symbols-outlined" aria-hidden="true">volume_up</span>
-                            </button>
-                            <span>{currentWord.phoneticUs || 'US'}</span>
-                            <button
-                              type="button"
-                              className="vocabulary-sound-btn vocabulary-sound-btn--uk"
-                              onClick={(event) => {
-                                event.stopPropagation()
-                                playPronunciationAudio(currentWord.audioUkUrl)
-                              }}
-                              disabled={!currentWord.audioUkUrl}
-                              tabIndex={isFlipped ? -1 : 0}
-                              aria-label="Nghe phát âm UK"
-                            >
-                              <span className="material-symbols-outlined" aria-hidden="true">volume_up</span>
-                            </button>
-                            <span>{currentWord.phoneticUk || 'UK'}</span>
+                            <div className="vocabulary-phonetic-row vocabulary-phonetic-row--us">
+                              <button
+                                type="button"
+                                className="vocabulary-sound-btn vocabulary-sound-btn--us"
+                                onClick={(event) => {
+                                  event.stopPropagation()
+                                  playPronunciationAudio(currentWord.audioUsUrl)
+                                }}
+                                disabled={!currentWord.audioUsUrl}
+                                tabIndex={isFlipped ? -1 : 0}
+                                aria-label="Nghe phát âm US"
+                              >
+                                <span className="material-symbols-outlined" aria-hidden="true">volume_up</span>
+                              </button>
+                              <span className="vocabulary-phonetic-badge">US</span>
+                              <span className="vocabulary-phonetic-text">{currentWord.phoneticUs || 'Chưa có phiên âm'}</span>
+                            </div>
+                            <div className="vocabulary-phonetic-row vocabulary-phonetic-row--uk">
+                              <button
+                                type="button"
+                                className="vocabulary-sound-btn vocabulary-sound-btn--uk"
+                                onClick={(event) => {
+                                  event.stopPropagation()
+                                  playPronunciationAudio(currentWord.audioUkUrl)
+                                }}
+                                disabled={!currentWord.audioUkUrl}
+                                tabIndex={isFlipped ? -1 : 0}
+                                aria-label="Nghe phát âm UK"
+                              >
+                                <span className="material-symbols-outlined" aria-hidden="true">volume_up</span>
+                              </button>
+                              <span className="vocabulary-phonetic-badge">UK</span>
+                              <span className="vocabulary-phonetic-text">{currentWord.phoneticUk || 'Chưa có phiên âm'}</span>
+                            </div>
                           </div>
                         </div>
 
@@ -683,6 +670,27 @@ export function VocabularyFlashcards({
                   <div className="vocabulary-sentence-practice__topbar">
                     <span>{safeSentenceIndex + 1}/{sentenceWords.length}</span>
                     <span>{currentSentenceWord.sentenceSubmissionCount ?? 0} câu đã gửi</span>
+                  </div>
+
+                  <div className="vocabulary-sentence-practice__nav" aria-label="Chuyển từ đặt câu">
+                    <button
+                      type="button"
+                      className="teacher-btn-outline"
+                      onClick={() => goToSentenceWord(safeSentenceIndex - 1)}
+                      disabled={safeSentenceIndex === 0 || isSubmittingSentence}
+                    >
+                      <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+                      Từ trước
+                    </button>
+                    <button
+                      type="button"
+                      className="teacher-btn-outline"
+                      onClick={() => goToSentenceWord(safeSentenceIndex + 1)}
+                      disabled={safeSentenceIndex === sentenceWords.length - 1 || isSubmittingSentence}
+                    >
+                      Từ tiếp
+                      <span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                    </button>
                   </div>
 
                   <div className="vocabulary-sentence-practice__word">

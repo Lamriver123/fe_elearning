@@ -1,0 +1,179 @@
+.student-sidebar,
+.student-header {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.56)),
+    rgba(255, 255, 255, 0.58);
+}
+
+.student-header {
+  position: fixed;
+  overflow: visible;
+  height: 72px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 16px 44px rgba(15, 23, 42, 0.07),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.66);
+}
+
+.student-header::after {
+  content: '';
+  position: absolute;
+  right: 26px;
+  bottom: -1px;
+  left: 26px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.22), rgba(16, 185, 129, 0.22), transparent);
+}
+
+.student-header__profile,
+.student-header__pill,
+.student-header__icon-btn {
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+}
+
+.student-header__profile {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(239, 246, 255, 0.62)),
+    rgba(255, 255, 255, 0.72);
+}
+
+.student-header__profile:hover .student-header__avatar {
+  transform: scale(1.05);
+}
+
+.student-header__avatar {
+  transition: transform 0.24s var(--student-motion), box-shadow 0.24s var(--student-motion);
+}
+
+.student-header__mobile-brand,
+.student-header__role-badge {
+  border-radius: 999px;
+}
+
+.student-sidebar {
+  border-right-color: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    20px 0 64px rgba(15, 23, 42, 0.1),
+    inset -1px 0 0 rgba(255, 255, 255, 0.7);
+}
+
+.student-sidebar__brand:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.student-sidebar__nav-item {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.student-sidebar__nav-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0));
+  opacity: 0;
+  transition: opacity 0.24s ease;
+}
+
+.student-sidebar__nav-item.active::before {
+  opacity: 1;
+}
+
+.student-sidebar__nav-item.active {
+  transform: translateX(4px) scale(1.01);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.7),
+    0 12px 28px color-mix(in srgb, var(--student-nav-color) 14%, transparent);
+}
+
+.student-sidebar__nav-item:not(.active):hover {
+  border-color: transparent;
+  background: transparent;
+  color: #475569;
+  transform: none;
+  box-shadow: none;
+}
+
+.student-sidebar__nav-item:not(.active):hover::before {
+  opacity: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .student-sidebar__nav-item:not(.active):hover {
+    border-color: color-mix(in srgb, var(--student-nav-color) 18%, transparent);
+    background: color-mix(in srgb, var(--student-nav-bg) 78%, transparent);
+    color: var(--student-nav-color);
+    transform: translateX(4px) scale(1.01);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.58),
+      0 12px 28px color-mix(in srgb, var(--student-nav-color) 10%, transparent);
+  }
+
+  .student-sidebar__nav-item:not(.active):hover::before {
+    opacity: 1;
+  }
+}
+
+.student-sidebar__progress-card,
+.student-sidebar__boost {
+  border-color: rgba(255, 255, 255, 0.72);
+  background:
+    linear-gradient(135deg, rgba(239, 246, 255, 0.86), rgba(236, 253, 245, 0.62)),
+    rgba(255, 255, 255, 0.5);
+}
+
+.student-sidebar__progress-track span {
+  box-shadow: 0 0 18px rgba(20, 184, 166, 0.32);
+}
+
+.student-sidebar__boost {
+  position: relative;
+  overflow: hidden;
+}
+
+.student-sidebar__boost::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.68), transparent 42%, rgba(255, 255, 255, 0.26));
+  opacity: 0.68;
+}
+
+.student-sidebar__boost > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 1024px) {
+  .student-header {
+    height: 66px;
+  }
+
+  .student-content {
+    padding-top: 82px;
+  }
+
+  .student-sidebar-container.open .student-sidebar {
+    box-shadow: 28px 0 90px rgba(15, 23, 42, 0.26);
+  }
+}
+
+@media (max-width: 760px) {
+  .student-dashboard {
+    --student-radius-shell: 20px;
+    --student-radius-panel: 18px;
+    --student-radius-card: 16px;
+    --student-radius-control: 14px;
+  }
+
+  .student-header::after {
+    right: 14px;
+    left: 14px;
+  }
+}

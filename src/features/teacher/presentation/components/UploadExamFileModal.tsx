@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { uploadTeacherExamFile } from '../../application/examUseCases';
 import { handleApiError } from '../../../../shared/lib/handleApiError';
+import { ModalPortal } from './ModalPortal';
 
 type UploadExamFileModalProps = {
   classId: string;
@@ -44,7 +45,8 @@ export function UploadExamFileModal({ classId, examId, sectionId, questionId, is
   };
 
   return (
-    <div className="modal-overlay modal-overlay--raised" onClick={onClose}>
+    <ModalPortal isOpen={isOpen}>
+      <div className="modal-overlay modal-overlay--raised modal-overlay--portal" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">{sectionId ? 'Đính kèm File vào Phần Thi' : 'Đính kèm File Đề Thi'}</h2>
@@ -107,6 +109,7 @@ export function UploadExamFileModal({ classId, examId, sectionId, questionId, is
           </div>
         </form>
       </div>
-    </div>
+      </div>
+    </ModalPortal>
   );
 }

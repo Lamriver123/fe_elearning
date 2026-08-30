@@ -114,14 +114,7 @@ export function ExamList({ classId }: ExamListProps) {
                   <span className="material-symbols-outlined" aria-hidden="true">visibility</span>
                   Chi tiết
                 </button>
-                <button 
-                  className="teacher-btn-primary" 
-                  type="button"
-                  onClick={() => navigate(`/teacher/classes/${classId}/exams/${exam.id}`)}
-                >
-                  <span className="material-symbols-outlined" aria-hidden="true">edit</span>
-                  Sửa đề
-                </button>
+                
                 <button 
                   className="teacher-btn-outline teacher-btn-danger" 
                   type="button"

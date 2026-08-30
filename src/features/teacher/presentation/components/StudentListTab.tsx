@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useClassMembers } from '../../application/useClassMembers';
 import type { ClassInviteCandidate, ClassMemberStatus, StudentMember } from '../../domain/classMember.types';
 
@@ -60,6 +61,17 @@ export function StudentListTab({ classId }: { classId: string }) {
 
     return () => window.clearTimeout(timerId);
   }, [inviteQuery, searchInviteCandidates]);
+
+  useEffect(() => {
+    if (!selectedStudent) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [selectedStudent]);
 
   const handleApprove = async (studentId: string, status: Extract<ClassMemberStatus, 'APPROVED' | 'REJECTED'>) => {
     const success = await updateMemberStatus(studentId, status);
@@ -297,28 +309,29 @@ export function StudentListTab({ classId }: { classId: string }) {
       )}
 
       {/* Student detail modal */}
-      {selectedStudent && (
+      {selectedStudent && createPortal(
         <div className="student-detail-overlay" onClick={() => setSelectedStudent(null)}>
           <div className="student-detail-modal student-detail-modal--wide" onClick={e => e.stopPropagation()}>
             <button className="student-detail-modal__close" type="button" onClick={() => setSelectedStudent(null)}>
               <span className="material-symbols-outlined" aria-hidden="true">close</span>
             </button>
 
-            <div className="student-detail-modal__header">
+            <div className="student-detail-modal__header student-detail-modal__header--compact">
               <img
                 src={getAvatarSrc(selectedStudent)}
                 alt={selectedStudent.student.fullName}
                 className="student-detail-modal__avatar"
               />
-              <h2 className="student-detail-modal__name">{selectedStudent.student.fullName}</h2>
-              <span className="student-detail-modal__username">@{selectedStudent.student.userName}</span>
-              <span className={`student-detail-modal__status-badge status-pill ${getStatusInfo(selectedStudent.status).className}`}>
-                {getStatusInfo(selectedStudent.status).label}
-              </span>
+              <div className="student-detail-modal__heading">
+                <h2 className="student-detail-modal__name">{selectedStudent.student.fullName}</h2>
+                <span className={`student-detail-modal__status-badge status-pill ${getStatusInfo(selectedStudent.status).className}`}>
+                  {getStatusInfo(selectedStudent.status).label}
+                </span>
+              </div>
             </div>
 
-            <div className="student-detail-modal__body student-detail-modal__body--grid">
-              <div className="student-detail-modal__field student-detail-modal__field--wide">
+            <div className="student-detail-modal__body student-detail-modal__body--compact">
+              <div className="student-detail-modal__field">
                 <span className="material-symbols-outlined" aria-hidden="true">mail</span>
                 <div>
                   <span className="student-detail-modal__field-label">Email</span>
@@ -343,34 +356,10 @@ export function StudentListTab({ classId }: { classId: string }) {
               </div>
 
               <div className="student-detail-modal__field">
-                <span className="material-symbols-outlined" aria-hidden="true">cake</span>
-                <div>
-                  <span className="student-detail-modal__field-label">Ngày sinh</span>
-                  <span className="student-detail-modal__field-value">{formatDate(selectedStudent.student.dateOfBirth)}</span>
-                </div>
-              </div>
-
-              <div className="student-detail-modal__field">
-                <span className="material-symbols-outlined" aria-hidden="true">location_on</span>
-                <div>
-                  <span className="student-detail-modal__field-label">Địa chỉ</span>
-                  <span className="student-detail-modal__field-value">{selectedStudent.student.address || '—'}</span>
-                </div>
-              </div>
-
-              <div className="student-detail-modal__field">
                 <span className="material-symbols-outlined" aria-hidden="true">event</span>
                 <div>
                   <span className="student-detail-modal__field-label">Ngày tham gia lớp</span>
                   <span className="student-detail-modal__field-value">{formatDate(selectedStudent.joinedAt)}</span>
-                </div>
-              </div>
-
-              <div className="student-detail-modal__field">
-                <span className="material-symbols-outlined" aria-hidden="true">person_add</span>
-                <div>
-                  <span className="student-detail-modal__field-label">Ngày đăng ký tài khoản</span>
-                  <span className="student-detail-modal__field-value">{formatDate(selectedStudent.student.createdAt)}</span>
                 </div>
               </div>
             </div>
@@ -414,7 +403,8 @@ export function StudentListTab({ classId }: { classId: string }) {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

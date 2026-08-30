@@ -9,7 +9,10 @@ export function CourseList({ courses }: CourseListProps) {
   return (
     <section className="student-courses">
       <div className="student-courses__header">
-        <h3 className="student-courses__title">Lớp học của tôi</h3>
+        <div>
+          <span className="student-section-kicker">Đang theo học</span>
+          <h3 className="student-courses__title">Lớp học nổi bật</h3>
+        </div>
         <Link className="student-courses__link" to="/student/courses">Xem tất cả</Link>
       </div>
       
@@ -26,6 +29,7 @@ export function CourseList({ courses }: CourseListProps) {
             </div>
             
             <div className="course-card__content">
+              <span className="course-card__tag">Học tiếp</span>
               <h4 className="course-card__title" title={course.title}>
                 {course.title}
               </h4>
@@ -42,6 +46,10 @@ export function CourseList({ courses }: CourseListProps) {
                   Bài {course.completedLessons}/{course.totalLessons}
                 </p>
               </div>
+              <button className="course-card__action" type="button">
+                <span className="material-symbols-outlined" aria-hidden="true">play_arrow</span>
+                Vào học
+              </button>
             </div>
           </div>
         ))}

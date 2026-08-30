@@ -92,6 +92,9 @@ export type ExamSubmissionSummary = {
   submittedAt: string;
   totalScore?: number | null;
   maxScore?: number | null;
+  answerCount?: number | null;
+  manualAnswerCount?: number | null;
+  pendingManualCount?: number | null;
   status?: 'SUBMITTED' | 'GRADED' | string;
 };
 

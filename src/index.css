@@ -3149,8 +3149,8 @@ html.material-icons-fallback:not(.material-icons-ready) .material-symbols-outlin
 
 .vocabulary-phonetics {
   display: grid;
-  grid-template-columns: auto minmax(0, auto);
-  gap: 10px 8px;
+  grid-template-columns: 1fr;
+  gap: 10px;
   align-items: center;
   padding: 14px 18px;
   border: 1px solid rgba(0, 100, 146, 0.1);
@@ -3158,6 +3158,38 @@ html.material-icons-fallback:not(.material-icons-ready) .material-symbols-outlin
   background: rgba(255, 255, 255, 0.78);
   color: var(--color-text);
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+}
+
+.vocabulary-phonetic-row {
+  display: grid;
+  grid-template-columns: 34px auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.vocabulary-phonetic-badge {
+  min-width: 34px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.vocabulary-phonetic-row--uk .vocabulary-phonetic-badge {
+  background: var(--color-error-soft);
+  color: var(--color-error);
+}
+
+.vocabulary-phonetic-text {
+  min-width: 0;
+  color: var(--color-text);
+  font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .vocabulary-sound-btn {

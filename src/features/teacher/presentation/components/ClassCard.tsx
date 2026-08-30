@@ -109,7 +109,7 @@ export function ClassCard({ classInfo }: ClassCardProps) {
             </button>
           ) : isUpcoming ? (
             <button className="teacher-class-card__action">
-              Quản lý học viên
+              Quản lý học sinh
             </button>
           ) : (
             <button className="teacher-class-card__action">

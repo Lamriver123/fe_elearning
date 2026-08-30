@@ -5,6 +5,7 @@ import { TeacherSidebar } from './TeacherSidebar'
 import { TeacherHeader } from './TeacherHeader'
 import { AiChatBubble } from './AiChatBubble'
 import '../styles/teacher-dashboard.css'
+import '../styles/teacher-liquid.css'
 
 type TeacherLayoutProps = {
   children: ReactNode
@@ -16,6 +17,7 @@ export function TeacherLayout({ children, user }: TeacherLayoutProps) {
 
   return (
     <div className="teacher-dashboard">
+      <div className="teacher-dashboard__backdrop" aria-hidden="true" />
       <TeacherHeader user={user} onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
       <div className={`teacher-sidebar-container ${isSidebarOpen ? 'open' : ''}`}>
         {isSidebarOpen && (
@@ -32,4 +34,3 @@ export function TeacherLayout({ children, user }: TeacherLayoutProps) {
     </div>
   )
 }
-

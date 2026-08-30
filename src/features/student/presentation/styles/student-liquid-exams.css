@@ -1,0 +1,352 @@
+.exam-timeline {
+  gap: 22px;
+}
+
+.exam-timeline-summary {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 26px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.14), transparent 36%),
+    radial-gradient(circle at 100% 100%, rgba(20, 184, 166, 0.16), transparent 38%),
+    linear-gradient(135deg, rgba(255, 247, 237, 0.68), rgba(239, 246, 255, 0.74) 50%, rgba(245, 243, 255, 0.7));
+}
+
+.exam-timeline-summary__divider {
+  display: none;
+}
+
+.exam-timeline-summary__item {
+  --summary-accent: #2563eb;
+  justify-content: flex-start;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  border-radius: var(--student-radius-card);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--summary-accent) 13%, #ffffff), rgba(255, 255, 255, 0.5)),
+    rgba(255, 255, 255, 0.48);
+  transition:
+    transform 0.24s var(--student-motion),
+    box-shadow 0.24s var(--student-motion),
+    border-color 0.24s var(--student-motion);
+}
+
+.exam-timeline-summary__item:hover {
+  border-color: color-mix(in srgb, var(--summary-accent) 24%, rgba(255, 255, 255, 0.68));
+  transform: translateY(-3px);
+  box-shadow: 0 16px 34px color-mix(in srgb, var(--summary-accent) 14%, transparent);
+}
+
+.exam-timeline-summary__item:has(.exam-timeline-summary__icon--total) {
+  --summary-accent: #2563eb;
+}
+
+.exam-timeline-summary__item:has(.exam-timeline-summary__icon--pending) {
+  --summary-accent: #ea580c;
+}
+
+.exam-timeline-summary__item:has(.exam-timeline-summary__icon--done) {
+  --summary-accent: #059669;
+}
+
+.exam-timeline-summary__item:nth-child(1) {
+  --summary-accent: #2563eb;
+}
+
+.exam-timeline-summary__item:nth-child(3) {
+  --summary-accent: #ea580c;
+}
+
+.exam-timeline-summary__item:nth-child(5) {
+  --summary-accent: #059669;
+}
+
+.exam-timeline-summary__icon--total {
+  background: linear-gradient(135deg, #dbeafe, #cffafe);
+  color: #2563eb;
+}
+
+.exam-timeline-summary__icon--pending {
+  background: linear-gradient(135deg, #ffedd5, #fef3c7);
+  color: #ea580c;
+}
+
+.exam-timeline-summary__icon--done {
+  background: linear-gradient(135deg, #dcfce7, #ccfbf1);
+  color: #059669;
+}
+
+.exam-timeline-summary__number {
+  font-size: 1.45rem;
+  color: #0f172a;
+  font-weight: 950;
+}
+
+.exam-timeline-summary__label {
+  color: #64748b;
+  font-weight: 850;
+}
+
+.exam-timeline-list {
+  gap: 4px;
+}
+
+.exam-timeline-item {
+  --exam-accent: #2563eb;
+  --exam-accent-2: #06b6d4;
+  --exam-tint: rgba(239, 246, 255, 0.7);
+  animation: studentSurfaceIn 0.38s var(--student-motion) both;
+}
+
+.exam-timeline-item:nth-child(2) {
+  animation-delay: 0.04s;
+}
+
+.exam-timeline-item:nth-child(3) {
+  animation-delay: 0.08s;
+}
+
+.exam-timeline-item:nth-child(4) {
+  animation-delay: 0.12s;
+}
+
+.exam-timeline-item.exam-timeline-status--pending {
+  --exam-accent: #ea580c;
+  --exam-accent-2: #facc15;
+  --exam-tint: rgba(255, 247, 237, 0.78);
+}
+
+.exam-timeline-item.exam-timeline-status--upcoming {
+  --exam-accent: #2563eb;
+  --exam-accent-2: #06b6d4;
+  --exam-tint: rgba(239, 246, 255, 0.78);
+}
+
+.exam-timeline-item.exam-timeline-status--submitted {
+  --exam-accent: #16a34a;
+  --exam-accent-2: #14b8a6;
+  --exam-tint: rgba(236, 253, 245, 0.78);
+}
+
+.exam-timeline-item.exam-timeline-status--expired {
+  --exam-accent: #64748b;
+  --exam-accent-2: #94a3b8;
+  --exam-tint: rgba(248, 250, 252, 0.78);
+}
+
+.exam-timeline-item__connector {
+  width: 56px;
+}
+
+.exam-timeline-item__dot {
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--exam-accent) 18%, #ffffff), rgba(255, 255, 255, 0.84));
+  color: var(--exam-accent);
+  box-shadow:
+    0 0 0 8px color-mix(in srgb, var(--exam-accent) 10%, transparent),
+    0 14px 30px color-mix(in srgb, var(--exam-accent) 14%, transparent);
+  transition: transform 0.24s var(--student-motion), box-shadow 0.24s var(--student-motion);
+}
+
+.exam-timeline-item__dot.exam-timeline-status--pending,
+.exam-timeline-item__dot.exam-timeline-status--upcoming,
+.exam-timeline-item__dot.exam-timeline-status--submitted,
+.exam-timeline-item__dot.exam-timeline-status--expired {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--exam-accent) 18%, #ffffff), rgba(255, 255, 255, 0.84));
+  color: var(--exam-accent);
+  box-shadow:
+    0 0 0 8px color-mix(in srgb, var(--exam-accent) 10%, transparent),
+    0 14px 30px color-mix(in srgb, var(--exam-accent) 14%, transparent);
+}
+
+.exam-timeline-item:hover .exam-timeline-item__dot {
+  transform: scale(1.08);
+  box-shadow:
+    0 0 0 10px color-mix(in srgb, var(--exam-accent) 13%, transparent),
+    0 18px 38px color-mix(in srgb, var(--exam-accent) 22%, transparent);
+}
+
+.exam-timeline-item__line {
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--exam-accent) 28%, #dbeafe), rgba(148, 163, 184, 0.2));
+}
+
+.exam-timeline-item__card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-left: 1px solid color-mix(in srgb, var(--exam-accent) 24%, rgba(255, 255, 255, 0.72));
+  background:
+    radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--exam-accent) 12%, transparent), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.76), var(--exam-tint)),
+    rgba(255, 255, 255, 0.5);
+}
+
+.exam-timeline-item__card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  border: 0;
+  background:
+    linear-gradient(115deg, transparent 18%, rgba(255, 255, 255, 0.48) 44%, transparent 72%),
+    linear-gradient(90deg, var(--exam-accent), var(--exam-accent-2));
+  background-size: 160% 100%, 100% 4px;
+  background-position: -140% 0, 0 0;
+  background-repeat: no-repeat;
+  opacity: 0.86;
+  pointer-events: none;
+  transform: none;
+  z-index: 0;
+  transition: background-position 0.72s var(--student-motion);
+}
+
+.exam-timeline-item__card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.exam-timeline-item:hover .exam-timeline-item__card {
+  border-color: color-mix(in srgb, var(--exam-accent) 34%, rgba(255, 255, 255, 0.74));
+  border-left-color: color-mix(in srgb, var(--exam-accent) 34%, rgba(255, 255, 255, 0.74));
+  box-shadow:
+    0 28px 64px color-mix(in srgb, var(--exam-accent) 13%, transparent),
+    var(--student-glass-shadow-hover);
+  transform: translateY(-4px);
+}
+
+.exam-timeline-item:hover .exam-timeline-item__card::before {
+  background-position: 120% 0, 0 0;
+}
+
+.exam-timeline-status--pending .exam-timeline-item__card,
+.exam-timeline-status--upcoming .exam-timeline-item__card,
+.exam-timeline-status--submitted .exam-timeline-item__card,
+.exam-timeline-status--expired .exam-timeline-item__card {
+  border-left-width: 1px;
+}
+
+.exam-timeline-item__badge {
+  border: 1px solid color-mix(in srgb, var(--exam-accent) 18%, rgba(255, 255, 255, 0.68));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--exam-accent) 13%, #ffffff), rgba(255, 255, 255, 0.72));
+  color: var(--exam-accent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 20px color-mix(in srgb, var(--exam-accent) 12%, transparent);
+}
+
+.exam-timeline-item__badge.exam-timeline-status--pending,
+.exam-timeline-item__badge.exam-timeline-status--upcoming,
+.exam-timeline-item__badge.exam-timeline-status--submitted,
+.exam-timeline-item__badge.exam-timeline-status--expired {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--exam-accent) 13%, #ffffff), rgba(255, 255, 255, 0.72));
+  color: var(--exam-accent);
+}
+
+.exam-timeline-item__meta-chip {
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+  color: #475569;
+  font-weight: 850;
+  transition: transform 0.2s var(--student-motion), background 0.2s var(--student-motion);
+}
+
+.exam-timeline-item__meta-chip:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.exam-timeline-item__milestones {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--exam-accent) 7%, #ffffff), rgba(255, 255, 255, 0.48));
+  border: 1px solid rgba(255, 255, 255, 0.66);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 10px;
+}
+
+.exam-timeline-item__milestone {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.66);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.7), color-mix(in srgb, var(--exam-accent) 5%, #ffffff)),
+    rgba(255, 255, 255, 0.52);
+}
+
+.exam-timeline-item__milestone > span:not(.material-symbols-outlined) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.exam-timeline-item__btn--primary {
+  background: linear-gradient(135deg, var(--exam-accent), var(--exam-accent-2));
+  box-shadow: 0 16px 34px color-mix(in srgb, var(--exam-accent) 22%, transparent);
+}
+
+.exam-timeline-item__btn--secondary {
+  border-color: color-mix(in srgb, var(--exam-accent) 34%, rgba(255, 255, 255, 0.74));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--exam-accent) 12%, #ffffff), rgba(255, 255, 255, 0.66));
+  color: var(--exam-accent);
+}
+
+.exam-timeline-item__action-link,
+.exam-timeline-item__btn {
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  .exam-timeline-summary {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .exam-timeline-item__connector {
+    width: 40px;
+  }
+
+  .exam-timeline-item__dot {
+    width: 34px;
+    height: 34px;
+  }
+
+  .exam-timeline-item__card {
+    margin-left: 4px;
+    padding: 16px;
+  }
+
+  .exam-timeline-item__milestones {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .exam-timeline-item {
+    grid-template-columns: 1fr;
+  }
+
+  .exam-timeline-item__connector {
+    display: none;
+  }
+
+  .exam-timeline-item__card {
+    margin-left: 0;
+  }
+}

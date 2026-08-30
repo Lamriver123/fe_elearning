@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { confirmTeacherExamExcelImport, previewTeacherExamExcelImport } from '../../application/examUseCases';
 import type { ExcelImportPreview } from '../../domain/exam.types';
 import { handleApiError } from '../../../../shared/lib/handleApiError';
+import { ModalPortal } from './ModalPortal';
 
 type ImportExcelModalProps = {
   examId: string;
@@ -65,7 +66,8 @@ export function ImportExcelModal({ examId, isOpen, onClose, onSuccess }: ImportE
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <ModalPortal isOpen={isOpen}>
+      <div className="modal-overlay modal-overlay--portal" onClick={onClose}>
       <div className="modal-content modal-content--wide" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">Import Đề Thi từ Excel</h2>
@@ -160,6 +162,7 @@ export function ImportExcelModal({ examId, isOpen, onClose, onSuccess }: ImportE
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </ModalPortal>
   );
 }

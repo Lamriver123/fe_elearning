@@ -1,0 +1,269 @@
+/* Liquid glass base tokens and motion. Keep imported after the refresh CSS. */
+.student-dashboard {
+  --student-glass-surface: rgba(255, 255, 255, 0.6);
+  --student-glass-strong: rgba(255, 255, 255, 0.8);
+  --student-glass-border: rgba(255, 255, 255, 0.74);
+  --student-glass-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+  --student-glass-shadow-hover: 0 34px 90px rgba(15, 23, 42, 0.16);
+  --student-motion: cubic-bezier(0.2, 0.8, 0.2, 1);
+  background:
+    linear-gradient(132deg, rgba(14, 165, 233, 0.22) 0 16%, transparent 16% 31%, rgba(99, 102, 241, 0.18) 31% 43%, transparent 43% 58%, rgba(16, 185, 129, 0.22) 58% 73%, transparent 73% 100%),
+    linear-gradient(38deg, transparent 0 10%, rgba(251, 146, 60, 0.16) 10% 19%, transparent 19% 46%, rgba(217, 70, 239, 0.14) 46% 58%, transparent 58% 100%),
+    linear-gradient(162deg, #dff6ff 0%, #f7fbff 29%, #e9fbe9 56%, #f7edff 78%, #fff3d9 100%);
+}
+
+.student-dashboard::before {
+  content: '';
+  position: fixed;
+  inset: -24% -16%;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    linear-gradient(108deg, transparent 0 10%, rgba(14, 165, 233, 0.28) 12% 21%, transparent 24% 36%, rgba(20, 184, 166, 0.24) 41% 51%, transparent 54% 66%, rgba(217, 70, 239, 0.18) 72% 82%, transparent 84% 100%),
+    linear-gradient(28deg, transparent 0 16%, rgba(251, 146, 60, 0.18) 21% 31%, transparent 36% 60%, rgba(99, 102, 241, 0.17) 66% 77%, transparent 82% 100%);
+  background-size: 165% 165%, 190% 190%;
+  filter: blur(22px) saturate(1.12);
+  opacity: 0.92;
+  animation: studentLiquidWash 18s var(--student-motion) infinite alternate;
+}
+
+.student-dashboard__backdrop {
+  opacity: 0.86;
+  background-image:
+    linear-gradient(rgba(14, 165, 233, 0.052) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 184, 166, 0.046) 1px, transparent 1px),
+    linear-gradient(122deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.04) 46%, rgba(255, 255, 255, 0.36)),
+    linear-gradient(154deg, rgba(59, 130, 246, 0.12), transparent 34%, rgba(245, 158, 11, 0.1) 72%, transparent);
+  background-size: 36px 36px, 36px 36px, 175% 175%, 150% 150%;
+  animation: studentGridFloat 16s ease-in-out infinite alternate;
+}
+
+.student-dashboard__backdrop::before,
+.student-dashboard__backdrop::after {
+  content: '';
+  position: absolute;
+  inset: -12%;
+  pointer-events: none;
+  opacity: 0.58;
+}
+
+.student-dashboard__backdrop::before {
+  background:
+    linear-gradient(128deg, transparent 8%, rgba(255, 255, 255, 0.46) 18%, transparent 29%),
+    linear-gradient(142deg, transparent 42%, rgba(45, 212, 191, 0.12) 50%, transparent 62%),
+    linear-gradient(155deg, transparent 58%, rgba(168, 85, 247, 0.12) 68%, transparent 80%);
+  transform: skewY(-4deg);
+}
+
+.student-dashboard__backdrop::after {
+  background:
+    repeating-linear-gradient(118deg, rgba(255, 255, 255, 0.24) 0 1px, transparent 1px 18px),
+    linear-gradient(95deg, rgba(14, 165, 233, 0.08), transparent 38%, rgba(16, 185, 129, 0.08) 72%, transparent);
+  mix-blend-mode: soft-light;
+}
+
+.student-sidebar,
+.student-header,
+.student-welcome__hero,
+.student-today-panel,
+.student-stat-card,
+.student-courses,
+.course-card,
+.schedule-item,
+.student-schedule__container,
+.promo-card,
+.student-classes__header,
+.student-classes__stat,
+.student-classes__empty-state,
+.student-classes__tabs-row,
+.student-class-card,
+.student-class-detail__header,
+.student-class-detail__tabs.page-tabs,
+.class-overview__hero,
+.class-overview__details,
+.class-overview__metric,
+.exam-timeline-summary,
+.exam-timeline-item__card,
+.exam-timeline-empty,
+.exam-timeline-error,
+.student-quick-page__hero,
+.student-empty-hero,
+.student-quick-card,
+.student-dashboard .vocabulary-category-card,
+.student-dashboard .vocabulary-flashcard,
+.student-dashboard .vocabulary-sentence-practice,
+.student-dashboard .vocabulary-session-complete {
+  border-color: var(--student-glass-border);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.48)),
+    var(--student-glass-surface);
+  backdrop-filter: blur(22px) saturate(1.28);
+  -webkit-backdrop-filter: blur(22px) saturate(1.28);
+  box-shadow: var(--student-glass-shadow);
+}
+
+.student-dashboard,
+.student-content {
+  overflow-x: hidden;
+}
+
+.student-content {
+  scroll-behavior: smooth;
+}
+
+.student-content__container > * {
+  animation: studentSurfaceIn 0.42s var(--student-motion) both;
+}
+
+.student-header,
+.student-header__profile,
+.student-header__pill,
+.student-sidebar__brand,
+.student-sidebar__progress-card,
+.student-sidebar__nav-item,
+.student-sidebar__boost,
+.student-back-button,
+.student-welcome__btn,
+.course-card,
+.promo-card__btn,
+.student-classes__tab,
+.student-classes__search-form,
+.student-class-card,
+.student-class-card__action,
+.student-class-detail__tabs .page-tab,
+.exam-timeline-item__card,
+.exam-timeline-item__btn,
+.vocabulary-category-card,
+.vocabulary-review-btn {
+  transition:
+    transform 0.24s var(--student-motion),
+    box-shadow 0.24s var(--student-motion),
+    border-color 0.24s var(--student-motion),
+    background 0.24s var(--student-motion),
+    color 0.24s var(--student-motion),
+    opacity 0.24s ease;
+}
+
+.student-sidebar__logo,
+.student-header__avatar,
+.student-stat-card__icon,
+.student-class-card__placeholder-icon,
+.exam-timeline-summary__icon,
+.exam-timeline-item__dot,
+.class-overview__metric-icon {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 12px 28px rgba(15, 23, 42, 0.12);
+}
+
+.student-welcome__hero,
+.student-today-panel,
+.student-courses,
+.course-card,
+.student-classes__header,
+.student-class-detail__header,
+.exam-timeline-summary {
+  position: relative;
+  overflow: hidden;
+}
+
+.student-welcome__hero::before,
+.student-today-panel::before,
+.student-courses::before,
+.course-card::before,
+.student-classes__header::before,
+.student-class-detail__header::before,
+.exam-timeline-summary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(112deg, rgba(255, 255, 255, 0.82), transparent 28%, rgba(255, 255, 255, 0.34) 58%, transparent 82%);
+  transform: translateX(-54%);
+  transition: transform 0.72s var(--student-motion), opacity 0.72s ease;
+  opacity: 0.66;
+}
+
+.student-welcome__hero:hover::before,
+.student-today-panel:hover::before,
+.student-courses:hover::before,
+.course-card:hover::before,
+.student-classes__header:hover::before,
+.student-class-detail__header:hover::before,
+.exam-timeline-summary:hover::before {
+  transform: translateX(44%);
+}
+
+.student-header__profile:hover,
+.student-header__pill:hover,
+.student-back-button:hover,
+.student-welcome__btn:hover,
+.promo-card__btn:hover,
+.exam-timeline-item__btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 42px rgba(37, 99, 235, 0.16);
+}
+
+@keyframes studentLiquidWash {
+  from {
+    background-position: 0% 22%, 100% 0%;
+  }
+  to {
+    background-position: 100% 78%, 0% 100%;
+  }
+}
+
+@keyframes studentGridFloat {
+  from {
+    background-position: 0 0, 0 0, 0% 0%;
+  }
+  to {
+    background-position: 14px 8px, 8px 14px, 100% 100%;
+  }
+}
+
+@keyframes studentSurfaceIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-dashboard::before,
+  .student-dashboard__backdrop,
+  .student-content__container > *,
+  .exam-timeline-item {
+    animation: none;
+  }
+
+  .student-header,
+  .student-header__profile,
+  .student-header__pill,
+  .student-sidebar__brand,
+  .student-sidebar__progress-card,
+  .student-sidebar__nav-item,
+  .student-sidebar__boost,
+  .student-back-button,
+  .student-welcome__btn,
+  .course-card,
+  .promo-card__btn,
+  .student-classes__tab,
+  .student-classes__search-form,
+  .student-class-card,
+  .student-class-card__action,
+  .student-class-detail__tabs .page-tab,
+  .exam-timeline-item__card,
+  .exam-timeline-item__btn,
+  .vocabulary-category-card,
+  .vocabulary-review-btn {
+    transition: none;
+  }
+}

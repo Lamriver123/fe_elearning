@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Link, Routes, Route } from 'react-router-dom'
 import type { AuthUser } from '../features/auth/domain/auth.types'
 import { TeacherLayout } from '../features/teacher/presentation/components/TeacherLayout'
 import { ClassList } from '../features/teacher/presentation/components/ClassList'
@@ -52,6 +52,33 @@ function TeacherClassesContent() {
 }
 
 function TeacherHomeContent({ user }: { user: AuthUser }) {
+  const shortcuts = [
+    {
+      to: '/teacher/classes',
+      icon: 'school',
+      label: 'Lớp học',
+      description: 'Theo dõi lớp, học sinh và lời mời.',
+    },
+    {
+      to: '/teacher/exams',
+      icon: 'assignment',
+      label: 'Đề thi',
+      description: 'Tạo đề, quản lý bài nộp và chấm điểm.',
+    },
+    {
+      to: '/teacher/vocabulary',
+      icon: 'menu_book',
+      label: 'Từ vựng',
+      description: 'Import danh mục, gán lớp và review đặt câu.',
+    },
+    {
+      to: '/teacher/audio',
+      icon: 'graphic_eq',
+      label: 'Audio',
+      description: 'Upload hoặc cắt audio phát âm.',
+    },
+  ]
+
   return (
     <div className="teacher-content-container">
       <div className="teacher-page-header">
@@ -61,12 +88,16 @@ function TeacherHomeContent({ user }: { user: AuthUser }) {
         </div>
       </div>
       
-      <div className="teacher-home-panel surface-card">
-        <span className="material-symbols-outlined teacher-home-panel__icon" aria-hidden="true">dashboard</span>
-        <h2>Teacher Dashboard</h2>
-        <p>
-          Đây là trang tổng quan. Chọn "Quản lý lớp học" từ menu bên trái để xem danh sách các lớp học của bạn.
-        </p>
+      <div className="teacher-home-grid">
+        {shortcuts.map((shortcut) => (
+          <Link className="teacher-home-shortcut surface-card" to={shortcut.to} key={shortcut.to}>
+            <span className="material-symbols-outlined teacher-home-shortcut__icon" aria-hidden="true">
+              {shortcut.icon}
+            </span>
+            <strong>{shortcut.label}</strong>
+            <span>{shortcut.description}</span>
+          </Link>
+        ))}
       </div>
     </div>
   )

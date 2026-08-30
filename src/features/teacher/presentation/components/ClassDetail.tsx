@@ -1,4 +1,4 @@
-import { useParams, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { useParams, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ExamList } from './ExamList.tsx';
 import { ExamDetail } from './ExamDetail.tsx';
 import { CreateExam } from './CreateExam.tsx';
@@ -9,6 +9,8 @@ import { TeacherClassOverview } from './TeacherClassOverview.tsx';
 export function ClassDetail() {
   const { classId } = useParams<{ classId: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
+  const isSubmissionGradeRoute = location.pathname.includes('/grade/');
   
   if (!classId) {
     return (
@@ -35,27 +37,39 @@ export function ClassDetail() {
   }
 
   return (
-    <div className="teacher-content-container">
-      <div className="teacher-page-header">
-        <div>
-          <h1>Chi tiết lớp học</h1>
-        </div>
-      </div>
-      
-      <div className="teacher-tabs page-tabs" role="tablist" aria-label="Chi tiết lớp học">
-        {tabs.map(tab => {
-          const isActive = currentTab === tab.id || (tab.id === 'info' && location.pathname === `/teacher/classes/${classId}`);
-          return (
-            <Link 
-              key={tab.id} 
-              to={tab.path}
-              className={`page-tab ${isActive ? 'page-tab--active' : ''}`}
-            >
-              {tab.label}
-            </Link>
-          )
-        })}
-      </div>
+    <div className={`teacher-content-container ${isSubmissionGradeRoute ? 'teacher-content-container--focus' : ''}`}>
+      {!isSubmissionGradeRoute && (
+        <>
+          <div className="teacher-page-header">
+            <div>
+              <button
+                className="teacher-btn-outline back-button"
+                type="button"
+                onClick={() => navigate('/teacher/classes')}
+              >
+                <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+                Trở lại danh sách lớp
+              </button>
+              <h1>Chi tiết lớp học</h1>
+            </div>
+          </div>
+
+          <div className="teacher-tabs page-tabs" role="tablist" aria-label="Chi tiết lớp học">
+            {tabs.map(tab => {
+              const isActive = currentTab === tab.id || (tab.id === 'info' && location.pathname === `/teacher/classes/${classId}`);
+              return (
+                <Link
+                  key={tab.id}
+                  to={tab.path}
+                  className={`page-tab ${isActive ? 'page-tab--active' : ''}`}
+                >
+                  {tab.label}
+                </Link>
+              )
+            })}
+          </div>
+        </>
+      )}
 
       <Routes>
         <Route path="/" element={<TeacherClassOverview classId={classId} />} />

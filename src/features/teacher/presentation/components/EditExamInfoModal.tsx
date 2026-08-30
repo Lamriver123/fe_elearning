@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { updateTeacherExam } from '../../application/examUseCases';
 import type { Exam, UpdateExamPayload } from '../../domain/exam.types';
 import { handleApiError } from '../../../../shared/lib/handleApiError';
+import { ModalPortal } from './ModalPortal';
 
 type EditExamInfoModalProps = {
   classId: string;
@@ -56,7 +57,8 @@ export function EditExamInfoModal({ classId, exam, isOpen, onClose, onSuccess }:
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <ModalPortal isOpen={isOpen}>
+      <div className="modal-overlay modal-overlay--portal" onClick={onClose}>
       <div className="modal-content modal-content--compact" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">Sửa thông tin đề thi</h2>
@@ -123,6 +125,7 @@ export function EditExamInfoModal({ classId, exam, isOpen, onClose, onSuccess }:
           </div>
         </form>
       </div>
-    </div>
+      </div>
+    </ModalPortal>
   );
 }

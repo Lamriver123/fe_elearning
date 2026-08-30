@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { toast } from 'react-hot-toast'
 import { createTeacherClass } from '../../application/classUseCases'
 import { ApiError } from '../../../../shared/lib/httpClient'
+import { ModalPortal } from './ModalPortal'
 
 type CreateClassModalProps = {
   isOpen: boolean
@@ -101,7 +102,8 @@ export function CreateClassModal({ isOpen, onClose, onSuccess }: CreateClassModa
   }
 
   return (
-    <div className="teacher-modal-overlay" onClick={onClose}>
+    <ModalPortal isOpen={isOpen}>
+      <div className="teacher-modal-overlay" onClick={onClose}>
       <div className="teacher-modal" onClick={(e) => e.stopPropagation()}>
         <div className="teacher-modal__header">
           <h2>Tạo Lớp Học Mới</h2>
@@ -192,6 +194,7 @@ export function CreateClassModal({ isOpen, onClose, onSuccess }: CreateClassModa
           </div>
         </form>
       </div>
-    </div>
+      </div>
+    </ModalPortal>
   )
 }

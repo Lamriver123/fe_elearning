@@ -7,18 +7,53 @@ type ClassListProps = {
   error: string | null
 }
 
+function ClassCardSkeleton() {
+  return (
+    <div className="teacher-class-card teacher-class-card--skeleton" aria-hidden="true">
+      <div className="teacher-class-card__image-wrapper">
+        <div className="teacher-class-card__placeholder">
+          <span className="skeleton-line teacher-class-card-skeleton__icon" />
+        </div>
+        <div className="teacher-class-card__overlay" />
+        <span className="teacher-class-card__badge teacher-class-card__badge--code">
+          <span className="skeleton-line teacher-class-card-skeleton__badge-icon" />
+          <span className="skeleton-line teacher-class-card-skeleton__badge-code" />
+        </span>
+        <span className="teacher-class-card__badge teacher-class-card__badge--ongoing">
+          <span className="teacher-class-card__badge-dot teacher-class-card__badge-dot--ongoing" />
+          <span className="skeleton-line teacher-class-card-skeleton__badge-status" />
+        </span>
+      </div>
+
+      <div className="teacher-class-card__content">
+        <span className="skeleton-line teacher-class-card-skeleton__title" />
+        <div className="teacher-class-card__info">
+          <span className="teacher-class-card__info-item">
+            <span className="skeleton-line teacher-class-card-skeleton__mini-icon" />
+            <span className="skeleton-line teacher-class-card-skeleton__meta" />
+          </span>
+          <span className="teacher-class-card__dot" />
+          <span className="teacher-class-card__info-item">
+            <span className="skeleton-line teacher-class-card-skeleton__mini-icon" />
+            <span className="skeleton-line teacher-class-card-skeleton__meta teacher-class-card-skeleton__meta--wide" />
+          </span>
+        </div>
+        <div className="teacher-class-card__footer">
+          <span className="teacher-class-card__action teacher-class-card-skeleton__action">
+            <span className="skeleton-line teacher-class-card-skeleton__action-line" />
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function ClassList({ classes, isLoading, error }: ClassListProps) {
   if (isLoading) {
     return (
-      <div className="teacher-class-grid">
-        {[1, 2, 3].map((n) => (
-          <div key={n} className="skeleton-card" aria-hidden="true">
-            <div className="skeleton-thumb" />
-            <div className="skeleton-line skeleton-line--lg" />
-            <div className="skeleton-line skeleton-line--md" />
-            <div className="skeleton-line skeleton-line--sm" />
-            <div className="skeleton-chip" />
-          </div>
+      <div className="teacher-class-grid teacher-class-grid--loading" aria-label="Đang tải danh sách lớp học">
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+          <ClassCardSkeleton key={n} />
         ))}
       </div>
     )

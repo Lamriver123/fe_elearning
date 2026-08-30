@@ -205,7 +205,7 @@ export default function UserProfile({ onLogout }: UserProfileProps) {
               <div className="profile-identity__row">
                 <div className="profile-identity__text">
                   <div className="status-pill status-pill--info profile-role">
-                    {user.role === USER_ROLES.TEACHER ? 'Giáo viên' : 'Học viên'}
+                    {user.role === USER_ROLES.TEACHER ? 'Giáo viên' : 'Học sinh'}
                   </div>
                   <h2>{user.fullName}</h2>
                   <p>{user.email}</p>

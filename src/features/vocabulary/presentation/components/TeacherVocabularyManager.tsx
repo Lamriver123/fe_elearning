@@ -4,6 +4,7 @@ import { ApiError } from '../../../../shared/lib/httpClient'
 import { useClasses } from '../../../teacher/application/useClasses'
 import { downloadVocabularyTemplate } from '../../application/vocabularyUseCases'
 import { useTeacherVocabulary } from '../../application/useTeacherVocabulary'
+import { VocabularyWordEditor, type VocabularyWordDraft } from './VocabularyWordEditor'
 import type {
   CreateVocabularyWordPayload,
   ImportVocabularyDuplicateConflict,
@@ -17,22 +18,6 @@ import type {
   VocabularyWord,
 } from '../../domain/vocabulary.types'
 
-type WordDraft = {
-  orderIndex: string
-  term: string
-  wordType: string
-  phoneticUs: string
-  phoneticUk: string
-  audioUsUrl: string
-  audioUkUrl: string
-  meaning: string
-  example: string
-  exampleMeaning: string
-  synonyms: string
-  antonyms: string
-  sentenceRequirement: VocabularySentenceRequirement
-}
-
 type PendingDuplicateImport = {
   categoryId: string
   file: File
@@ -41,7 +26,7 @@ type PendingDuplicateImport = {
 
 type TeacherVocabularyDetailTab = 'detail' | 'interactions'
 
-function createEmptyWordDraft(nextOrderIndex: number): WordDraft {
+function createEmptyWordDraft(nextOrderIndex: number): VocabularyWordDraft {
   return {
     orderIndex: String(nextOrderIndex),
     term: '',
@@ -59,7 +44,7 @@ function createEmptyWordDraft(nextOrderIndex: number): WordDraft {
   }
 }
 
-function createWordDraft(word: VocabularyWord): WordDraft {
+function createWordDraft(word: VocabularyWord): VocabularyWordDraft {
   return {
     orderIndex: String(word.orderIndex),
     term: word.term,
@@ -128,10 +113,9 @@ function getInteractionCompletionLabel(interaction: VocabularySentenceInteractio
   return interaction.isCompleted ? 'Hoàn thành' : 'Chưa hoàn thành'
 }
 
-function getInteractionSentenceProgress(interaction: VocabularySentenceInteraction) {
-  return interaction.sentenceTotal > 0
-    ? `Đặt câu: ${interaction.sentenceSubmittedCount}/${interaction.sentenceTotal}`
-    : 'Đặt câu: không yêu cầu'
+function getProgressPercent(current: number, total: number) {
+  if (total <= 0) return 0
+  return Math.min(100, Math.round((current / total) * 100))
 }
 
 function isDuplicateImportConflict(
@@ -173,7 +157,7 @@ export function TeacherVocabularyManager() {
   const [classSearch, setClassSearch] = useState('')
   const [editingWordId, setEditingWordId] = useState<string | null>(null)
   const [isCreatingWord, setIsCreatingWord] = useState(false)
-  const [wordDraft, setWordDraft] = useState<WordDraft | null>(null)
+  const [wordDraft, setWordDraft] = useState<VocabularyWordDraft | null>(null)
   const [pendingImport, setPendingImport] = useState<PendingDuplicateImport | null>(null)
   const [activeDetailTab, setActiveDetailTab] = useState<TeacherVocabularyDetailTab>('detail')
   const [interactions, setInteractions] = useState<VocabularySentenceClassInteraction[]>([])
@@ -216,6 +200,24 @@ export function TeacherVocabularyManager() {
     () => interactions.reduce((total, classInteraction) => total + classInteraction.pendingCount, 0),
     [interactions],
   )
+  const interactionSummary = useMemo(
+    () => ({
+      classCount: interactions.length,
+      studentCount: interactions.reduce(
+        (total, classInteraction) => total + classInteraction.totalStudents,
+        0,
+      ),
+      sentenceCount: interactions.reduce(
+        (total, classInteraction) => total + classInteraction.totalSentences,
+        0,
+      ),
+      reviewedCount: interactions.reduce(
+        (total, classInteraction) => total + classInteraction.reviewedCount,
+        0,
+      ),
+    }),
+    [interactions],
+  )
 
   useEffect(() => {
     if (!isClassDropdownOpen) return undefined
@@ -254,13 +256,13 @@ export function TeacherVocabularyManager() {
     const nextClassId =
       selectedInteractionClassId && data.some((interaction) => interaction.classInfo.id === selectedInteractionClassId)
         ? selectedInteractionClassId
-        : data[0]?.classInfo.id ?? null
+        : null
     const nextClassInteraction = data.find((interaction) => interaction.classInfo.id === nextClassId)
     const nextStudentId =
       selectedInteractionStudentId &&
       nextClassInteraction?.students.some((interaction) => interaction.student.id === selectedInteractionStudentId)
         ? selectedInteractionStudentId
-        : nextClassInteraction?.students[0]?.student.id ?? null
+        : null
     setSelectedInteractionClassId(nextClassId)
     setSelectedInteractionStudentId(nextStudentId)
   }
@@ -347,9 +349,17 @@ export function TeacherVocabularyManager() {
   }
 
   const selectInteractionClass = (classId: string) => {
-    const classInteraction = interactions.find((interaction) => interaction.classInfo.id === classId)
     setSelectedInteractionClassId(classId)
-    setSelectedInteractionStudentId(classInteraction?.students[0]?.student.id ?? null)
+    setSelectedInteractionStudentId(null)
+  }
+
+  const backToInteractionClasses = () => {
+    setSelectedInteractionClassId(null)
+    setSelectedInteractionStudentId(null)
+  }
+
+  const backToInteractionStudents = () => {
+    setSelectedInteractionStudentId(null)
   }
 
   const startCreateWord = () => {
@@ -365,7 +375,7 @@ export function TeacherVocabularyManager() {
     setWordDraft(createWordDraft(word))
   }
 
-  const updateWordDraft = (key: keyof WordDraft, value: string) => {
+  const updateWordDraft = <K extends keyof VocabularyWordDraft>(key: K, value: VocabularyWordDraft[K]) => {
     setWordDraft((currentDraft) =>
       currentDraft ? { ...currentDraft, [key]: value } : currentDraft,
     )
@@ -507,137 +517,14 @@ export function TeacherVocabularyManager() {
     if (!wordDraft) return null
 
     return (
-      <div className="vocabulary-word-editor">
-        <label>
-          Thứ tự
-          <input
-            className="form-input"
-            type="number"
-            min="1"
-            value={wordDraft.orderIndex}
-            onChange={(event) => updateWordDraft('orderIndex', event.target.value)}
-          />
-        </label>
-        <label>
-          Từ vựng
-          <input
-            className="form-input"
-            value={wordDraft.term}
-            onChange={(event) => updateWordDraft('term', event.target.value)}
-          />
-        </label>
-        <label>
-          Loại từ
-          <input
-            className="form-input"
-            value={wordDraft.wordType}
-            onChange={(event) => updateWordDraft('wordType', event.target.value)}
-          />
-        </label>
-        <label>
-          Phiên âm US
-          <input
-            className="form-input"
-            value={wordDraft.phoneticUs}
-            onChange={(event) => updateWordDraft('phoneticUs', event.target.value)}
-          />
-        </label>
-        <label>
-          Phiên âm UK
-          <input
-            className="form-input"
-            value={wordDraft.phoneticUk}
-            onChange={(event) => updateWordDraft('phoneticUk', event.target.value)}
-          />
-        </label>
-        <label>
-          Audio US URL
-          <input
-            className="form-input"
-            value={wordDraft.audioUsUrl}
-            onChange={(event) => updateWordDraft('audioUsUrl', event.target.value)}
-          />
-        </label>
-        <label>
-          Audio UK URL
-          <input
-            className="form-input"
-            value={wordDraft.audioUkUrl}
-            onChange={(event) => updateWordDraft('audioUkUrl', event.target.value)}
-          />
-        </label>
-        <label className="vocabulary-word-editor__wide">
-          Nghĩa
-          <textarea
-            className="form-input"
-            rows={2}
-            value={wordDraft.meaning}
-            onChange={(event) => updateWordDraft('meaning', event.target.value)}
-          />
-        </label>
-        <label className="vocabulary-word-editor__wide">
-          Ví dụ
-          <textarea
-            className="form-input"
-            rows={2}
-            value={wordDraft.example}
-            onChange={(event) => updateWordDraft('example', event.target.value)}
-          />
-        </label>
-        <label className="vocabulary-word-editor__wide">
-          Nghĩa ví dụ
-          <textarea
-            className="form-input"
-            rows={2}
-            value={wordDraft.exampleMeaning}
-            onChange={(event) => updateWordDraft('exampleMeaning', event.target.value)}
-          />
-        </label>
-        <label>
-          Đồng nghĩa
-          <input
-            className="form-input"
-            value={wordDraft.synonyms}
-            onChange={(event) => updateWordDraft('synonyms', event.target.value)}
-          />
-        </label>
-        <label>
-          Trái nghĩa
-          <input
-            className="form-input"
-            value={wordDraft.antonyms}
-            onChange={(event) => updateWordDraft('antonyms', event.target.value)}
-          />
-        </label>
-        <label>
-          Yêu cầu đặt câu
-          <select
-            className="form-input"
-            value={wordDraft.sentenceRequirement}
-            onChange={(event) =>
-              updateWordDraft('sentenceRequirement', event.target.value as VocabularySentenceRequirement)
-            }
-          >
-            <option value="ONCE">Một lần đầu</option>
-            <option value="ALWAYS">Mỗi lần học thuộc</option>
-            <option value="OFF">Không bắt buộc</option>
-          </select>
-        </label>
-        <div className="vocabulary-word-editor__actions">
-          <button type="button" className="teacher-btn-outline" onClick={cancelWordEditor}>
-            Hủy
-          </button>
-          <button
-            type="button"
-            className="teacher-btn-primary"
-            disabled={isMutating}
-            onClick={() => void onSubmit()}
-          >
-            <span className="material-symbols-outlined" aria-hidden="true">save</span>
-            {submitLabel}
-          </button>
-        </div>
-      </div>
+      <VocabularyWordEditor
+        draft={wordDraft}
+        isMutating={isMutating}
+        submitLabel={submitLabel}
+        onCancel={cancelWordEditor}
+        onChange={updateWordDraft}
+        onSubmit={onSubmit}
+      />
     )
   }
 
@@ -854,7 +741,7 @@ export function TeacherVocabularyManager() {
                 </div>
               </div>
 
-              <div className="vocabulary-admin-section">
+              <div className="vocabulary-admin-section vocabulary-class-assignment-section">
                 <h3>Lớp học</h3>
                 <div className="vocabulary-class-combobox" ref={classComboboxRef}>
                   <button
@@ -942,10 +829,10 @@ export function TeacherVocabularyManager() {
 
               {activeDetailTab === 'interactions' && (
               <div className="vocabulary-admin-section vocabulary-interactions-section">
-                <div className="vocabulary-word-section-head">
+                <div className="vocabulary-interaction-head">
                   <div>
-                    <h3> </h3>
-                    <p> </p>
+                    <span className="vocabulary-interaction-eyebrow">Theo dõi đặt câu</span>
+                    <h3>Quản lý tương tác học sinh</h3>
                   </div>
                   <button
                     type="button"
@@ -958,6 +845,25 @@ export function TeacherVocabularyManager() {
                   </button>
                 </div>
 
+                <div className="vocabulary-interaction-summary" aria-label="Tổng quan tương tác">
+                  <div>
+                    <span>Lớp</span>
+                    <strong>{interactionSummary.classCount}</strong>
+                  </div>
+                  <div>
+                    <span>Học sinh</span>
+                    <strong>{interactionSummary.studentCount}</strong>
+                  </div>
+                  <div>
+                    <span>Chờ review</span>
+                    <strong>{totalPendingInteractions}</strong>
+                  </div>
+                  <div>
+                    <span>Đã review</span>
+                    <strong>{interactionSummary.reviewedCount}</strong>
+                  </div>
+                </div>
+
                 {isInteractionLoading ? (
                   <div className="vocabulary-interactions-loading">
                     <span className="skeleton-line skeleton-line--lg" />
@@ -965,156 +871,271 @@ export function TeacherVocabularyManager() {
                     <span className="skeleton-line skeleton-line--lg" />
                   </div>
                 ) : interactions.length > 0 ? (
-                  <div className="vocabulary-interactions-layout">
-                    <div className="vocabulary-interaction-classes" role="list">
-                      {interactions.map((classInteraction) => {
-                        const isActiveClass = classInteraction.classInfo.id === selectedInteractionClassId
-
-                        return (
-                          <section
-                            className={`vocabulary-interaction-class-group ${isActiveClass ? 'is-active' : ''}`}
-                            key={classInteraction.classInfo.id}
-                          >
-                            <button
-                              type="button"
-                              className="vocabulary-interaction-class-btn"
-                              onClick={() => selectInteractionClass(classInteraction.classInfo.id)}
-                              aria-expanded={isActiveClass}
-                            >
-                              <span className="material-symbols-outlined" aria-hidden="true">school</span>
-                              <span className="vocabulary-interaction-class-copy">
-                                <strong>{classInteraction.classInfo.name}</strong>
-                                <small>
-                                  {classInteraction.totalStudents} học sinh · {classInteraction.totalSentences} câu
-                                </small>
-                              </span>
-                              <span className="vocabulary-interaction-class-stats">
-                                {classInteraction.pendingCount}
-                              </span>
-                            </button>
-
-                            {isActiveClass && (
-                              <div className="vocabulary-interaction-students vocabulary-interaction-students--nested" role="list">
-                                {classInteraction.students.length > 0 ? (
-                                  classInteraction.students.map((interaction) => (
-                                    <button
-                                      type="button"
-                                      key={interaction.student.id}
-                                      className={
-                                        interaction.student.id === selectedInteractionStudentId ? 'is-active' : ''
-                                      }
-                                      onClick={() => setSelectedInteractionStudentId(interaction.student.id)}
-                                    >
-                                      {interaction.student.avatar ? (
-                                        <img src={interaction.student.avatar} alt="" aria-hidden="true" />
-                                      ) : (
-                                        <span className="vocabulary-interaction-avatar" aria-hidden="true">
-                                          <span className="material-symbols-outlined">person</span>
-                                        </span>
-                                      )}
-                                      <span className="vocabulary-interaction-student-copy">
-                                        <strong>{interaction.student.fullName}</strong>
-                                        <small>{interaction.student.email}</small>
-                                        <small>
-                                          Học: {interaction.studiedCount}/{interaction.studyTotal} · {getInteractionSentenceProgress(interaction)}
-                                        </small>
-                                        <span className={`vocabulary-interaction-status ${interaction.isCompleted ? 'is-complete' : 'is-incomplete'}`}>
-                                          {getInteractionCompletionLabel(interaction)}
-                                        </span>
-                                      </span>
-                                      <em>{interaction.pendingCount}</em>
-                                    </button>
-                                  ))
-                                ) : (
-                                  <p className="vocabulary-interaction-class-empty">Lớp chưa có học sinh được duyệt</p>
-                                )}
-                              </div>
-                            )}
-                          </section>
-                        )
-                      })}
-                    </div>
-
-                    <div className="vocabulary-interaction-detail">
-                      {selectedInteraction ? (
-                        <>
-                          <div className="vocabulary-interaction-detail__head">
-                            <div>
-                              <span>{selectedInteractionClass?.classInfo.name}</span>
-                              <h4>{selectedInteraction.student.fullName}</h4>
-                              <p>
-                                Học: {selectedInteraction.studiedCount}/{selectedInteraction.studyTotal} ·{' '}
-                                {getInteractionSentenceProgress(selectedInteraction)} ·{' '}
-                                {selectedInteraction.pendingCount} chờ review
-                              </p>
-                              <strong className={`vocabulary-interaction-status ${selectedInteraction.isCompleted ? 'is-complete' : 'is-incomplete'}`}>
-                                {getInteractionCompletionLabel(selectedInteraction)}
-                              </strong>
-                            </div>
-                          </div>
-
-                          {selectedInteraction.sentences.length > 0 ? (
-                            <div className="vocabulary-sentence-list">
-                              {selectedInteraction.sentences.map((submission) => (
-                                <article className="vocabulary-sentence-card" key={submission.id}>
-                                  <div className="vocabulary-sentence-card__top">
-                                    <div>
-                                      <span>Từ #{submission.word?.orderIndex}</span>
-                                      <h5>{submission.word?.term}</h5>
-                                    </div>
-                                    <strong className={`vocabulary-sentence-status vocabulary-sentence-status--${submission.status.toLowerCase()}`}>
-                                      {getSentenceStatusLabel(submission.status)}
-                                    </strong>
-                                  </div>
-                                  <p className="vocabulary-sentence-card__sentence">"{submission.sentence}"</p>
-                                  <label className="vocabulary-sentence-feedback">
-                                    Feedback
-                                    <textarea
-                                      className="form-input"
-                                      rows={3}
-                                      value={feedbackDrafts[submission.id] ?? submission.feedback ?? ''}
-                                      onChange={(event) =>
-                                        setFeedbackDrafts((currentDrafts) => ({
-                                          ...currentDrafts,
-                                          [submission.id]: event.target.value,
-                                        }))
-                                      }
-                                      placeholder="Nhận xét ngắn cho học sinh"
-                                    />
-                                  </label>
-                                  <div className="vocabulary-sentence-card__footer">
-                                    <span>
-                                      {submission.reviewedAt
-                                        ? `Review: ${new Date(submission.reviewedAt).toLocaleString('vi-VN')}`
-                                        : 'Chưa có feedback'}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      className="teacher-btn-primary"
-                                      disabled={isMutating}
-                                      onClick={() => void handleSaveSentenceFeedback(submission.id)}
-                                    >
-                                      <span className="material-symbols-outlined" aria-hidden="true">rate_review</span>
-                                      Lưu review
-                                    </button>
-                                  </div>
-                                </article>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="page-state vocabulary-empty-small">
-                              <span className="material-symbols-outlined page-state__icon" aria-hidden="true">edit_note</span>
-                              <h3 className="page-state__title">Học sinh chưa đặt câu</h3>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <div className="page-state vocabulary-empty-small">
-                          <span className="material-symbols-outlined page-state__icon" aria-hidden="true">group</span>
-                          <h3 className="page-state__title">Chọn học sinh để xem câu</h3>
-                        </div>
+                  <div className="vocabulary-interactions-panel">
+                    <div className="vocabulary-interaction-breadcrumb" aria-label="Vị trí đang xem">
+                      <button
+                        type="button"
+                        className={!selectedInteractionClass ? 'is-active' : ''}
+                        onClick={backToInteractionClasses}
+                      >
+                        Lớp
+                      </button>
+                      {selectedInteractionClass && (
+                        <button
+                          type="button"
+                          className={selectedInteractionClass && !selectedInteraction ? 'is-active' : ''}
+                          onClick={backToInteractionStudents}
+                        >
+                          {selectedInteractionClass.classInfo.name}
+                        </button>
+                      )}
+                      {selectedInteraction && (
+                        <button type="button" className="is-active">
+                          {selectedInteraction.student.fullName}
+                        </button>
                       )}
                     </div>
+
+                    {!selectedInteractionClass ? (
+                      <div className="vocabulary-interaction-class-grid" role="list">
+                        {interactions.map((classInteraction) => {
+                          const completedStudents = classInteraction.students.filter(
+                            (interaction) => interaction.isCompleted,
+                          ).length
+                          const completionPercent = getProgressPercent(
+                            completedStudents,
+                            classInteraction.totalStudents,
+                          )
+
+                          return (
+                            <button
+                              type="button"
+                              className={`vocabulary-interaction-overview-card ${classInteraction.pendingCount > 0 ? 'has-pending' : 'is-clear'}`}
+                              key={classInteraction.classInfo.id}
+                              onClick={() => selectInteractionClass(classInteraction.classInfo.id)}
+                            >
+                              <span className="vocabulary-interaction-card-icon" aria-hidden="true">
+                                <span className="material-symbols-outlined">school</span>
+                              </span>
+                              <span className="vocabulary-interaction-card-copy">
+                                <strong>{classInteraction.classInfo.name}</strong>
+                                <small>{classInteraction.totalStudents} học sinh</small>
+                              </span>
+                              <span className="vocabulary-interaction-pending">
+                                {classInteraction.pendingCount > 0
+                                  ? `${classInteraction.pendingCount} chờ`
+                                  : 'Đã ổn'}
+                              </span>
+                              <span className="vocabulary-interaction-card-metrics">
+                                <span>
+                                  <b>{completedStudents}/{classInteraction.totalStudents}</b>
+                                  Hoàn thành
+                                </span>
+                                <span>
+                                  <b>{classInteraction.totalSentences}</b>
+                                  Câu đặt
+                                </span>
+                                <span>
+                                  <b>{classInteraction.reviewedCount}</b>
+                                  Đã review
+                                </span>
+                              </span>
+                              <span className="vocabulary-interaction-progress" aria-hidden="true">
+                                <i style={{ width: `${completionPercent}%` }} />
+                              </span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    ) : !selectedInteraction ? (
+                      <div className="vocabulary-interaction-stage">
+                        <div className="vocabulary-interaction-stage-head">
+                          <button
+                            type="button"
+                            className="teacher-btn-outline vocabulary-interaction-back"
+                            onClick={backToInteractionClasses}
+                          >
+                            <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+                            Lớp
+                          </button>
+                          <div className="vocabulary-interaction-stage-copy">
+                            <span>Lớp đang xem</span>
+                            <h4>{selectedInteractionClass.classInfo.name}</h4>
+                          </div>
+                          <div className="vocabulary-interaction-stage-metrics">
+                            <span>{selectedInteractionClass.totalStudents} học sinh</span>
+                            <span>{selectedInteractionClass.totalSentences} câu đặt</span>
+                            <span>{selectedInteractionClass.pendingCount} chờ review</span>
+                          </div>
+                        </div>
+
+                        {selectedInteractionClass.students.length > 0 ? (
+                          <div className="vocabulary-interaction-student-grid" role="list">
+                            {selectedInteractionClass.students.map((interaction) => {
+                              const studyPercent = getProgressPercent(
+                                interaction.studiedCount,
+                                interaction.studyTotal,
+                              )
+                              const sentencePercent = getProgressPercent(
+                                interaction.sentenceSubmittedCount,
+                                interaction.sentenceTotal,
+                              )
+
+                              return (
+                                <button
+                                  type="button"
+                                  key={interaction.student.id}
+                                  className={`vocabulary-interaction-student-card ${interaction.isCompleted ? 'is-complete' : 'is-incomplete'}`}
+                                  onClick={() => setSelectedInteractionStudentId(interaction.student.id)}
+                                >
+                                  {interaction.student.avatar ? (
+                                    <img src={interaction.student.avatar} alt="" aria-hidden="true" />
+                                  ) : (
+                                    <span className="vocabulary-interaction-avatar" aria-hidden="true">
+                                      <span className="material-symbols-outlined">person</span>
+                                    </span>
+                                  )}
+                                  <span className="vocabulary-interaction-student-main">
+                                    <span className="vocabulary-interaction-student-name">
+                                      <strong>{interaction.student.fullName}</strong>
+                                      <small>{interaction.student.email}</small>
+                                    </span>
+                                    <span className="vocabulary-interaction-mini-bars">
+                                      <span>
+                                        <em>Học</em>
+                                        <i><b style={{ width: `${studyPercent}%` }} /></i>
+                                        <strong>{interaction.studiedCount}/{interaction.studyTotal}</strong>
+                                      </span>
+                                      <span>
+                                        <em>Đặt câu</em>
+                                        <i><b style={{ width: `${sentencePercent}%` }} /></i>
+                                        <strong>{interaction.sentenceSubmittedCount}/{interaction.sentenceTotal}</strong>
+                                      </span>
+                                    </span>
+                                  </span>
+                                  <span className={`vocabulary-interaction-status ${interaction.isCompleted ? 'is-complete' : 'is-incomplete'}`}>
+                                    {getInteractionCompletionLabel(interaction)}
+                                  </span>
+                                  {interaction.pendingCount > 0 && (
+                                    <span className="vocabulary-interaction-pending-dot">
+                                      {interaction.pendingCount}
+                                    </span>
+                                  )}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        ) : (
+                          <p className="vocabulary-interaction-class-empty">Lớp chưa có học sinh được duyệt</p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="vocabulary-interaction-stage vocabulary-interaction-stage--review">
+                        <div className="vocabulary-interaction-review-head">
+                          <button
+                            type="button"
+                            className="teacher-btn-outline vocabulary-interaction-back"
+                            onClick={backToInteractionStudents}
+                          >
+                            <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+                            Học sinh
+                          </button>
+                          <div className="vocabulary-interaction-review-profile">
+                            {selectedInteraction.student.avatar ? (
+                              <img src={selectedInteraction.student.avatar} alt="" aria-hidden="true" />
+                            ) : (
+                              <span className="vocabulary-interaction-avatar" aria-hidden="true">
+                                <span className="material-symbols-outlined">person</span>
+                              </span>
+                            )}
+                            <div>
+                              <span>{selectedInteractionClass.classInfo.name}</span>
+                              <h4>{selectedInteraction.student.fullName}</h4>
+                              <p>{selectedInteraction.student.email}</p>
+                            </div>
+                            <strong className={`vocabulary-interaction-status ${selectedInteraction.isCompleted ? 'is-complete' : 'is-incomplete'}`}>
+                              {getInteractionCompletionLabel(selectedInteraction)}
+                            </strong>
+                          </div>
+                          <div className="vocabulary-interaction-review-metrics">
+                            <span>
+                              <b>{selectedInteraction.studiedCount}/{selectedInteraction.studyTotal}</b>
+                              Học
+                            </span>
+                            <span>
+                              <b>{selectedInteraction.sentenceSubmittedCount}/{selectedInteraction.sentenceTotal}</b>
+                              Đặt câu
+                            </span>
+                            <span>
+                              <b>{selectedInteraction.pendingCount}</b>
+                              Chờ review
+                            </span>
+                          </div>
+                        </div>
+
+                        {selectedInteraction.sentences.length > 0 ? (
+                          <div className="vocabulary-sentence-list">
+                            {selectedInteraction.sentences.map((submission) => (
+                              <article
+                                className={`vocabulary-sentence-card vocabulary-sentence-card--${submission.status.toLowerCase()}`}
+                                key={submission.id}
+                              >
+                                <div className="vocabulary-sentence-card__top">
+                                  <div>
+                                    <span>Từ #{submission.word?.orderIndex ?? '-'}</span>
+                                    <h5>{submission.word?.term ?? 'Không rõ từ'}</h5>
+                                    {submission.word?.meaning && <small>{submission.word.meaning}</small>}
+                                  </div>
+                                  <strong className={`vocabulary-sentence-status vocabulary-sentence-status--${submission.status.toLowerCase()}`}>
+                                    {getSentenceStatusLabel(submission.status)}
+                                  </strong>
+                                </div>
+                                <div className="vocabulary-sentence-card__sentence">
+                                  <span>Câu học sinh đặt</span>
+                                  <p>{submission.sentence}</p>
+                                </div>
+                                <label className="vocabulary-sentence-feedback">
+                                  Feedback
+                                  <textarea
+                                    className="form-input"
+                                    rows={3}
+                                    value={feedbackDrafts[submission.id] ?? submission.feedback ?? ''}
+                                    onChange={(event) =>
+                                      setFeedbackDrafts((currentDrafts) => ({
+                                        ...currentDrafts,
+                                        [submission.id]: event.target.value,
+                                      }))
+                                    }
+                                    placeholder="Nhận xét ngắn cho học sinh"
+                                  />
+                                </label>
+                                <div className="vocabulary-sentence-card__footer">
+                                  <span>
+                                    {submission.reviewedAt
+                                      ? `Đã review ${new Date(submission.reviewedAt).toLocaleString('vi-VN')}`
+                                      : 'Chưa có feedback'}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="teacher-btn-primary"
+                                    disabled={isMutating}
+                                    onClick={() => void handleSaveSentenceFeedback(submission.id)}
+                                  >
+                                    <span className="material-symbols-outlined" aria-hidden="true">rate_review</span>
+                                    Lưu review
+                                  </button>
+                                </div>
+                              </article>
+                            ))}
+                          </div>
+                        ) : (
+                        <div className="page-state vocabulary-empty-small">
+                          <span className="material-symbols-outlined page-state__icon" aria-hidden="true">edit_note</span>
+                          <h3 className="page-state__title">Học sinh chưa đặt câu</h3>
+                        </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="page-state vocabulary-empty-small">

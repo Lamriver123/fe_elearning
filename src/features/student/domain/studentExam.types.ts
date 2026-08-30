@@ -77,11 +77,20 @@ export type StudentAnswerResult = {
     questionType: string;
     points: number;
     explanation?: string;
+    options?: {
+      id: string;
+      label?: string;
+      content: string;
+      isCorrect?: boolean;
+      orderIndex?: number;
+    }[];
   };
   selectedOption?: {
     id: string;
+    label?: string;
     content: string;
-    isCorrect: boolean;
+    isCorrect?: boolean;
+    orderIndex?: number;
   };
 };
 

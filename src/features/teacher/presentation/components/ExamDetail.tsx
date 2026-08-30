@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
 import { useExamDetail } from '../../application/useExamDetail.js';
 import type { ExamSection, Question } from '../../domain/exam.types.js';
@@ -65,10 +65,11 @@ function ExamDetailSkeleton() {
 export function ExamDetail() {
   const { classId, examId } = useParams<{ classId: string; examId: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { exam, isLoading, isPublishing, refreshExam, publishExam, deleteSection, deleteQuestion, deleteFile } =
     useExamDetail(classId, examId);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'content' | 'submissions'>('content');
+  const activeTab = searchParams.get('tab') === 'submissions' ? 'submissions' : 'content';
 
   // Modals state
   const [isAddSectionOpen, setIsAddSectionOpen] = useState(false);
@@ -100,6 +101,18 @@ export function ExamDetail() {
   const handleDeleteFile = async (fileId: string) => {
     if (!window.confirm('Bạn có chắc muốn xóa file này?')) return;
     await deleteFile(fileId);
+  };
+
+  const handleTabChange = (tab: 'content' | 'submissions') => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (tab === 'submissions') {
+      nextParams.set('tab', 'submissions');
+    } else {
+      nextParams.delete('tab');
+    }
+
+    setSearchParams(nextParams, { replace: true });
   };
 
   if (isLoading) {
@@ -202,14 +215,14 @@ export function ExamDetail() {
         <button 
           className={`page-tab ${activeTab === 'content' ? 'page-tab--active' : ''}`}
           type="button"
-          onClick={() => setActiveTab('content')}
+          onClick={() => handleTabChange('content')}
         >
           Nội dung đề thi
         </button>
         <button 
           className={`page-tab ${activeTab === 'submissions' ? 'page-tab--active' : ''}`}
           type="button"
-          onClick={() => setActiveTab('submissions')}
+          onClick={() => handleTabChange('submissions')}
         >
           Bài nộp học sinh
         </button>

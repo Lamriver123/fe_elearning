@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { addTeacherExamQuestion, updateTeacherExamQuestion } from '../../application/examUseCases';
 import type { QuestionPayload, QuestionType } from '../../domain/exam.types';
 import { handleApiError } from '../../../../shared/lib/handleApiError';
+import { ModalPortal } from './ModalPortal';
 
 type AddQuestionModalProps = {
   classId: string;
@@ -159,7 +160,8 @@ export function AddQuestionModal({ classId, examId, sectionId, isOpen, initialDa
   };
 
   return (
-    <div className="modal-overlay modal-overlay--raised" onClick={onClose}>
+    <ModalPortal isOpen={isOpen}>
+      <div className="modal-overlay modal-overlay--raised modal-overlay--portal" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">{initialData ? 'Sửa Câu Hỏi' : 'Thêm Câu Hỏi Mới'}</h2>
@@ -281,6 +283,7 @@ export function AddQuestionModal({ classId, examId, sectionId, isOpen, initialDa
           </div>
         </form>
       </div>
-    </div>
+      </div>
+    </ModalPortal>
   );
 }

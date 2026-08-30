@@ -45,30 +45,60 @@ export function StudentClasses() {
 
   return (
     <div className="student-classes">
-      <div className="student-classes__header">
-        <h2>Lớp học của tôi</h2>
-        <p>Tham gia và theo dõi các lớp học của bạn.</p>
-      </div>
+      <section className="student-classes__header">
+        <div className="student-classes__header-content">
+          <span className="student-classes__kicker">
+            <span className="material-symbols-outlined" aria-hidden="true">auto_stories</span>
+            Không gian học tập
+          </span>
+          <h2>Lớp học của tôi</h2>
+          <p>Chọn lớp để tiếp tục học, theo dõi lời mời và các yêu cầu đang chờ duyệt.</p>
+        </div>
+
+        <div className="student-classes__stats" aria-label="Tổng quan lớp học">
+          <span className="student-classes__stat student-classes__stat--joined">
+            <span className="material-symbols-outlined" aria-hidden="true">verified</span>
+            <strong>{approvedClasses.length}</strong>
+            <small>Đã tham gia</small>
+          </span>
+          <span className="student-classes__stat student-classes__stat--pending">
+            <span className="material-symbols-outlined" aria-hidden="true">hourglass_top</span>
+            <strong>{pendingClasses.length}</strong>
+            <small>Chờ duyệt</small>
+          </span>
+          <span className="student-classes__stat student-classes__stat--invited">
+            <span className="material-symbols-outlined" aria-hidden="true">mark_email_unread</span>
+            <strong>{invitedClasses.length}</strong>
+            <small>Lời mời</small>
+          </span>
+        </div>
+      </section>
 
       <div className="student-classes__tabs-row">
         <div className="student-classes__tabs">
           <button
             onClick={() => setActiveTab('APPROVED')}
             className={`student-classes__tab ${activeTab === 'APPROVED' ? 'student-classes__tab--active' : ''}`}
+            aria-pressed={activeTab === 'APPROVED'}
           >
-            Đã tham gia ({approvedClasses.length})
+            <span className="material-symbols-outlined" aria-hidden="true">verified</span>
+            Đã tham gia 
           </button>
           <button
             onClick={() => setActiveTab('PENDING')}
             className={`student-classes__tab ${activeTab === 'PENDING' ? 'student-classes__tab--active' : ''}`}
+            aria-pressed={activeTab === 'PENDING'}
           >
-            Đang chờ duyệt ({pendingClasses.length})
+            <span className="material-symbols-outlined" aria-hidden="true">hourglass_top</span>
+            Đang chờ duyệt 
           </button>
           <button
             onClick={() => setActiveTab('INVITED')}
             className={`student-classes__tab ${activeTab === 'INVITED' ? 'student-classes__tab--active' : ''}`}
+            aria-pressed={activeTab === 'INVITED'}
           >
-            Lời mời ({invitedClasses.length})
+            <span className="material-symbols-outlined" aria-hidden="true">mark_email_unread</span>
+            Lời mời 
           </button>
         </div>
 
@@ -123,7 +153,7 @@ export function StudentClasses() {
             </p>
           </div>
         ) : (
-          <div className="teacher-class-grid">
+          <div className="student-class-grid">
             {displayClasses.map((cls) => (
               <StudentClassCard 
                 key={cls.id} 

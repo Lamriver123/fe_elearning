@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { addTeacherExamSection, updateTeacherExamSection } from '../../application/examUseCases';
 import type { SkillType } from '../../domain/exam.types';
 import { handleApiError } from '../../../../shared/lib/handleApiError';
+import { ModalPortal } from './ModalPortal';
 
 type AddSectionModalProps = {
   classId: string;
@@ -77,7 +78,8 @@ export function AddSectionModal({ classId, examId, isOpen, initialData, onClose,
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <ModalPortal isOpen={isOpen}>
+      <div className="modal-overlay modal-overlay--portal" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">{initialData ? 'Sửa Phần Thi' : 'Thêm Phần Thi Mới'}</h2>
@@ -173,6 +175,7 @@ export function AddSectionModal({ classId, examId, isOpen, initialData, onClose,
           </div>
         </form>
       </div>
-    </div>
+      </div>
+    </ModalPortal>
   );
 }

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useParams, Routes, Route, useNavigate, Link, useLocation } from 'react-router-dom';
 import { StudentExamList } from './StudentExamList';
 import { ExamTaker } from './ExamTaker';
@@ -9,6 +10,19 @@ export function StudentClassDetail() {
   const { classId } = useParams<{ classId: string }>();
   const location = useLocation();
   const navigate = useNavigate();
+  const tabRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
+
+  const currentTab = location.pathname.includes('/exams') ? 'exams' : 
+                     location.pathname.includes('/vocabulary') ? 'vocabulary' :
+                     location.pathname.includes('/materials') ? 'materials' : 'overview';
+
+  useEffect(() => {
+    tabRefs.current[currentTab]?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center',
+    });
+  }, [currentTab]);
 
   if (!classId) {
     return (
@@ -29,9 +43,7 @@ export function StudentClassDetail() {
     { id: 'materials', label: 'Tài liệu', path: `/student/courses/${classId}/materials` },
   ];
 
-  const currentTab = location.pathname.includes('/exams') ? 'exams' : 
-                     location.pathname.includes('/vocabulary') ? 'vocabulary' :
-                     location.pathname.includes('/materials') ? 'materials' : 'overview';
+  const activeTabIndex = Math.max(tabs.findIndex(tab => tab.id === currentTab), 0);
 
   // If we are taking an exam, we probably want to hide the standard tabs and header
   // so we check if the path matches exactly `/exams/:examId`
@@ -49,9 +61,9 @@ export function StudentClassDetail() {
   return (
     <div className="student-content-container student-class-detail">
       <div className="student-class-detail__header">
-        <div>
+        <div className="student-class-detail__header-content">
           <button 
-            className="teacher-btn-outline back-button" 
+            className="student-back-button" 
             type="button"
             onClick={() => navigate('/student/courses')}
           >
@@ -62,12 +74,21 @@ export function StudentClassDetail() {
         </div>
       </div>
 
-      <div className="student-class-detail__tabs page-tabs" role="tablist" aria-label="Chi tiết lớp học">
+      <div
+        className={`student-class-detail__tabs page-tabs student-class-detail__tabs--active-${activeTabIndex}`}
+        role="tablist"
+        aria-label="Chi tiết lớp học"
+      >
         {tabs.map(tab => (
           <Link
             key={tab.id}
+            ref={(node) => {
+              tabRefs.current[tab.id] = node;
+            }}
             to={tab.path}
             className={`page-tab ${currentTab === tab.id ? 'page-tab--active' : ''}`}
+            role="tab"
+            aria-selected={currentTab === tab.id}
           >
             {tab.label}
           </Link>
