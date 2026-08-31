@@ -165,6 +165,7 @@ html.performance-lite .student-dashboard :is(
   .exam-timeline-item__card,
   .exam-timeline-item__btn,
   .vocabulary-category-card,
+  .vocabulary-student-action,
   .vocabulary-review-btn
 ),
 html.performance-lite .teacher-dashboard :is(
@@ -214,6 +215,12 @@ html.performance-lite .teacher-class-card--skeleton::before,
 html.performance-lite .student-class-card--loading::before,
 html.performance-lite .vocabulary-category-card--loading::before {
   animation: none !important;
+}
+
+html.performance-lite .vocabulary-student-review-overlay {
+  background: rgba(15, 23, 42, 0.34) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 html.performance-lite .student-content,

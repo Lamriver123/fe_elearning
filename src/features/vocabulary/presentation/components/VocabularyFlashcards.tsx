@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { toast } from 'react-hot-toast'
 import type {
   VocabularyCategory,
@@ -201,6 +202,18 @@ export function VocabularyFlashcards({
   const currentAudioUsUrl = currentWord?.audioUsUrl ?? null
   const currentAudioUkUrl = currentWord?.audioUkUrl ?? null
   const dueCount = words.filter(isDue).length
+
+  useEffect(() => {
+    if (!isReviewPanelOpen) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [isReviewPanelOpen])
+
   const vocabularyHeader = headerTitle || headerDescription ? (
     <div className="profile-page__header">
       {headerTitle && <h1>{headerTitle}</h1>}
@@ -481,12 +494,20 @@ export function VocabularyFlashcards({
       {selectedCategory && (
         <>
           <div className="vocabulary-study-detail-actions">
-            <button type="button" className="teacher-btn-outline" onClick={backToCategories}>
+            <button
+              type="button"
+              className="vocabulary-student-action vocabulary-student-action--ghost"
+              onClick={backToCategories}
+            >
               <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
               Quay lại
             </button>
             {onLoadSentenceSubmissions && (
-              <button type="button" className="teacher-btn-outline" onClick={() => void openReviewPanel()}>
+              <button
+                type="button"
+                className="vocabulary-student-action vocabulary-student-action--ghost"
+                onClick={() => void openReviewPanel()}
+              >
                 <span className="material-symbols-outlined" aria-hidden="true">rate_review</span>
                 Xem review
               </button>
@@ -502,12 +523,20 @@ export function VocabularyFlashcards({
                   <p>Tiến độ đã được lưu ngầm. Bạn có thể xem nhận xét của giáo viên cho các câu đã đặt.</p>
                   <div>
                     {onLoadSentenceSubmissions && (
-                      <button type="button" className="teacher-btn-primary" onClick={() => void openReviewPanel()}>
+                      <button
+                        type="button"
+                        className="vocabulary-student-action vocabulary-student-action--primary"
+                        onClick={() => void openReviewPanel()}
+                      >
                         <span className="material-symbols-outlined" aria-hidden="true">rate_review</span>
                         Xem review
                       </button>
                     )}
-                    <button type="button" className="teacher-btn-outline" onClick={backToCategories}>
+                    <button
+                      type="button"
+                      className="vocabulary-student-action vocabulary-student-action--ghost"
+                      onClick={backToCategories}
+                    >
                       Quay lại danh mục
                     </button>
                   </div>
@@ -655,12 +684,20 @@ export function VocabularyFlashcards({
                   <p>Các câu đã được gửi tới giáo viên. Bạn có thể mở phần review để xem feedback khi giáo viên nhận xét.</p>
                   <div>
                     {onLoadSentenceSubmissions && (
-                      <button type="button" className="teacher-btn-primary" onClick={() => void openReviewPanel()}>
+                      <button
+                        type="button"
+                        className="vocabulary-student-action vocabulary-student-action--primary"
+                        onClick={() => void openReviewPanel()}
+                      >
                         <span className="material-symbols-outlined" aria-hidden="true">rate_review</span>
                         Xem review
                       </button>
                     )}
-                    <button type="button" className="teacher-btn-outline" onClick={backToCategories}>
+                    <button
+                      type="button"
+                      className="vocabulary-student-action vocabulary-student-action--ghost"
+                      onClick={backToCategories}
+                    >
                       Quay lại danh mục
                     </button>
                   </div>
@@ -675,7 +712,7 @@ export function VocabularyFlashcards({
                   <div className="vocabulary-sentence-practice__nav" aria-label="Chuyển từ đặt câu">
                     <button
                       type="button"
-                      className="teacher-btn-outline"
+                      className="vocabulary-student-action vocabulary-student-action--nav"
                       onClick={() => goToSentenceWord(safeSentenceIndex - 1)}
                       disabled={safeSentenceIndex === 0 || isSubmittingSentence}
                     >
@@ -684,7 +721,7 @@ export function VocabularyFlashcards({
                     </button>
                     <button
                       type="button"
-                      className="teacher-btn-outline"
+                      className="vocabulary-student-action vocabulary-student-action--nav"
                       onClick={() => goToSentenceWord(safeSentenceIndex + 1)}
                       disabled={safeSentenceIndex === sentenceWords.length - 1 || isSubmittingSentence}
                     >
@@ -728,12 +765,16 @@ export function VocabularyFlashcards({
                   </label>
 
                   <div className="vocabulary-sentence-practice__actions">
-                    <button type="button" className="teacher-btn-outline" onClick={backToCategories}>
+                    <button
+                      type="button"
+                      className="vocabulary-student-action vocabulary-student-action--ghost"
+                      onClick={backToCategories}
+                    >
                       Thoát
                     </button>
                     <button
                       type="button"
-                      className="teacher-btn-primary"
+                      className="vocabulary-student-action vocabulary-student-action--primary"
                       onClick={() => void submitCurrentSentence()}
                       disabled={isSubmittingSentence}
                     >
@@ -753,8 +794,11 @@ export function VocabularyFlashcards({
         </>
       )}
 
-      {isReviewPanelOpen && (
-        <div className="modal-overlay modal-overlay--raised" onClick={() => setIsReviewPanelOpen(false)}>
+      {isReviewPanelOpen && createPortal(
+        <div
+          className="modal-overlay modal-overlay--raised modal-overlay--portal vocabulary-student-review-overlay"
+          onClick={() => setIsReviewPanelOpen(false)}
+        >
           <div className="modal-content vocabulary-review-modal" onClick={(event) => event.stopPropagation()}>
             <div className="modal-header">
               <div>
@@ -803,7 +847,8 @@ export function VocabularyFlashcards({
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   )

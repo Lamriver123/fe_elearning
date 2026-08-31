@@ -2999,6 +2999,90 @@ html.material-icons-fallback:not(.material-icons-ready) .material-symbols-outlin
   flex-wrap: wrap;
 }
 
+.vocabulary-student-action {
+  appearance: none;
+  min-width: 0;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 850;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.vocabulary-student-action .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.vocabulary-student-action--ghost,
+.vocabulary-student-action--nav {
+  border-color: rgba(37, 99, 235, 0.22);
+  background:
+    linear-gradient(135deg, rgba(239, 246, 255, 0.94), rgba(255, 255, 255, 0.72)),
+    #ffffff;
+  color: #2563eb;
+}
+
+.vocabulary-student-action--primary {
+  border-color: rgba(13, 148, 136, 0.26);
+  background: linear-gradient(135deg, #0073a6, #10b8a4);
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(0, 115, 160, 0.16);
+}
+
+.vocabulary-student-action--nav {
+  flex: 1 1 150px;
+  min-height: 40px;
+  box-shadow: none;
+}
+
+.vocabulary-student-action:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.vocabulary-student-action--ghost:hover:not(:disabled),
+.vocabulary-student-action--nav:hover:not(:disabled) {
+  border-color: rgba(37, 99, 235, 0.36);
+  background:
+    linear-gradient(135deg, rgba(219, 234, 254, 0.94), rgba(236, 253, 245, 0.72)),
+    #ffffff;
+  color: #1d4ed8;
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.1);
+}
+
+.vocabulary-student-action--primary:hover:not(:disabled) {
+  border-color: rgba(13, 148, 136, 0.38);
+  background: linear-gradient(135deg, #006492, #059669);
+  box-shadow: 0 18px 34px rgba(0, 115, 160, 0.2);
+}
+
+.vocabulary-student-action:active:not(:disabled) {
+  transform: translateY(0) scale(0.99);
+}
+
+.vocabulary-student-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+  box-shadow: none;
+  transform: none;
+}
+
 .vocabulary-flashcard {
   position: relative;
   min-height: 340px;
@@ -3735,6 +3819,49 @@ html.material-icons-fallback:not(.material-icons-ready) .material-symbols-outlin
   gap: 14px;
 }
 
+.vocabulary-student-review-overlay {
+  width: 100vw;
+  height: 100dvh;
+  min-height: 100svh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: clamp(14px, 2.5vw, 28px);
+  background:
+    radial-gradient(circle at 50% 32%, rgba(255, 255, 255, 0.14), transparent 32%),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.34), rgba(30, 41, 59, 0.24)),
+    rgba(15, 23, 42, 0.2);
+  backdrop-filter: blur(7px) saturate(1.05);
+  -webkit-backdrop-filter: blur(7px) saturate(1.05);
+  z-index: 12000;
+}
+
+.vocabulary-student-review-overlay .vocabulary-review-modal {
+  width: min(100%, 620px);
+  max-height: calc(100dvh - 56px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 24px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(239, 246, 255, 0.76) 52%, rgba(236, 253, 245, 0.7)),
+    #ffffff;
+  box-shadow:
+    0 24px 62px rgba(15, 23, 42, 0.18),
+    0 8px 22px rgba(14, 165, 233, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+
+.vocabulary-student-review-overlay .modal-header {
+  flex: 0 0 auto;
+  background:
+    linear-gradient(135deg, rgba(239, 246, 255, 0.92), rgba(236, 253, 245, 0.7)),
+    rgba(255, 255, 255, 0.88);
+}
+
+.vocabulary-student-review-overlay .modal-body {
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .vocabulary-sentence-prompt {
   min-width: 0;
   display: grid;
@@ -4326,7 +4453,8 @@ html.material-icons-fallback:not(.material-icons-ready) .material-symbols-outlin
     grid-template-columns: 1fr;
   }
 
-  .vocabulary-study-detail-header .teacher-btn-outline {
+  .vocabulary-study-detail-header .teacher-btn-outline,
+  .vocabulary-study-detail-header .vocabulary-student-action {
     width: fit-content;
   }
 
@@ -4335,7 +4463,8 @@ html.material-icons-fallback:not(.material-icons-ready) .material-symbols-outlin
     flex-direction: column;
   }
 
-  .vocabulary-study-detail-actions .teacher-btn-outline {
+  .vocabulary-study-detail-actions .teacher-btn-outline,
+  .vocabulary-study-detail-actions .vocabulary-student-action {
     width: 100%;
   }
 

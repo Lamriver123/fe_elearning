@@ -531,7 +531,8 @@
 }
 
 .student-dashboard .teacher-btn-outline,
-.student-dashboard .teacher-btn-primary {
+.student-dashboard .teacher-btn-primary,
+.student-dashboard .vocabulary-student-action {
   border-radius: var(--student-radius-control);
 }
 
