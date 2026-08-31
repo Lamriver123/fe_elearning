@@ -4,6 +4,7 @@ import { getAccessToken } from './features/auth/infrastructure/authStorage'
 import { configureAccessTokenResolver } from './shared/lib/httpClient'
 import './index.css'
 import App from './App.tsx'
+import './performance.css'
 
 const documentElement = document.documentElement
 const materialSymbolsFamily = 'Material Symbols Outlined'
@@ -11,12 +12,65 @@ const materialSymbolsFont = `24px "${materialSymbolsFamily}"`
 const materialIconsFallbackDelay = 2200
 const materialIconsReadyPollInterval = 250
 const materialIconsReadyPollDuration = 8000
+const performanceProfileQueries = [
+  window.matchMedia('(max-width: 900px)'),
+  window.matchMedia('(pointer: coarse)'),
+  window.matchMedia('(prefers-reduced-motion: reduce)'),
+  window.matchMedia('(update: slow)'),
+]
 
 configureAccessTokenResolver(getAccessToken)
 
 let materialIconsFallbackTimer: number | undefined
 let materialIconsReadyPollTimer: number | undefined
 let materialIconsStopPollingTimer: number | undefined
+
+function syncPerformanceProfile() {
+  const navigatorWithMemory = navigator as Navigator & { deviceMemory?: number }
+  const cpuCores = navigator.hardwareConcurrency ?? 8
+  const deviceMemory = navigatorWithMemory.deviceMemory ?? 8
+  const shouldUseLiteProfile = (
+    cpuCores <= 4 ||
+    deviceMemory <= 4 ||
+    performanceProfileQueries.some((query) => query.matches)
+  )
+
+  documentElement.classList.toggle('performance-lite', shouldUseLiteProfile)
+}
+
+function measureInitialFrameBudget() {
+  const maxSamples = 24
+  let samples = 0
+  let slowFrames = 0
+  let previousFrameTime = performance.now()
+
+  function sampleFrame(currentFrameTime: number) {
+    const frameDuration = currentFrameTime - previousFrameTime
+    previousFrameTime = currentFrameTime
+    samples += 1
+
+    if (frameDuration > 24) {
+      slowFrames += 1
+    }
+
+    if (samples < maxSamples) {
+      window.requestAnimationFrame(sampleFrame)
+      return
+    }
+
+    if (slowFrames >= 6) {
+      documentElement.classList.add('performance-lite')
+    }
+  }
+
+  window.requestAnimationFrame(sampleFrame)
+}
+
+syncPerformanceProfile()
+performanceProfileQueries.forEach((query) => {
+  query.addEventListener('change', syncPerformanceProfile)
+})
+measureInitialFrameBudget()
 
 documentElement.classList.remove('material-icons-ready', 'material-icons-fallback')
 documentElement.classList.add('material-icons-pending')

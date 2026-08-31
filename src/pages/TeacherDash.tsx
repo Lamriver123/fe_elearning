@@ -1,14 +1,14 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Link, Routes, Route } from 'react-router-dom'
 import type { AuthUser } from '../features/auth/domain/auth.types'
 import { TeacherLayout } from '../features/teacher/presentation/components/TeacherLayout'
 import { ClassList } from '../features/teacher/presentation/components/ClassList'
 import { useClasses } from '../features/teacher/application/useClasses'
 import { CreateClassModal } from '../features/teacher/presentation/components/CreateClassModal'
-import { ClassDetail } from '../features/teacher/presentation/components/ClassDetail'
-import UserProfile from './UserProfile.tsx'
-import { TeacherAudioUpload } from '../features/vocabulary/presentation/components/TeacherAudioUpload'
-import { TeacherVocabularyManager } from '../features/vocabulary/presentation/components/TeacherVocabularyManager'
+const ClassDetail = lazy(() => import('../features/teacher/presentation/components/ClassDetail').then((module) => ({ default: module.ClassDetail })))
+const UserProfile = lazy(() => import('./UserProfile.tsx'))
+const TeacherAudioUpload = lazy(() => import('../features/vocabulary/presentation/components/TeacherAudioUpload').then((module) => ({ default: module.TeacherAudioUpload })))
+const TeacherVocabularyManager = lazy(() => import('../features/vocabulary/presentation/components/TeacherVocabularyManager').then((module) => ({ default: module.TeacherVocabularyManager })))
 
 type TeacherAppProps = {
   user: AuthUser
@@ -103,17 +103,31 @@ function TeacherHomeContent({ user }: { user: AuthUser }) {
   )
 }
 
+function TeacherRouteLoading() {
+  return (
+    <div className="teacher-content-container">
+      <div className="surface-card page-state" aria-label="Đang tải nội dung">
+        <span className="skeleton-line skeleton-line--lg" />
+        <span className="skeleton-line skeleton-line--md" />
+        <span className="skeleton-line skeleton-line--sm" />
+      </div>
+    </div>
+  )
+}
+
 export default function TeacherApp({ user, onLogout }: TeacherAppProps) {
   return (
     <TeacherLayout user={user}>
-      <Routes>
-        <Route path="/" element={<TeacherHomeContent user={user} />} />
-        <Route path="classes" element={<TeacherClassesContent />} />
-        <Route path="classes/:classId/*" element={<ClassDetail />} />
-        <Route path="vocabulary" element={<TeacherVocabularyManager />} />
-        <Route path="audio" element={<TeacherAudioUpload />} />
-        <Route path="profile" element={<UserProfile onLogout={onLogout} />} />
-      </Routes>
+      <Suspense fallback={<TeacherRouteLoading />}>
+        <Routes>
+          <Route path="/" element={<TeacherHomeContent user={user} />} />
+          <Route path="classes" element={<TeacherClassesContent />} />
+          <Route path="classes/:classId/*" element={<ClassDetail />} />
+          <Route path="vocabulary" element={<TeacherVocabularyManager />} />
+          <Route path="audio" element={<TeacherAudioUpload />} />
+          <Route path="profile" element={<UserProfile onLogout={onLogout} />} />
+        </Routes>
+      </Suspense>
     </TeacherLayout>
   )
 }

@@ -1,0 +1,228 @@
+/* Adaptive performance profile for low-power and mobile devices. */
+html.performance-lite {
+  scroll-behavior: auto;
+}
+
+html.performance-lite .student-dashboard,
+html.performance-lite .teacher-dashboard {
+  --student-glass-shadow: 0 8px 24px rgba(15, 23, 42, 0.075);
+  --student-glass-shadow-hover: 0 12px 30px rgba(15, 23, 42, 0.1);
+  --teacher-glass-shadow: 0 8px 24px rgba(15, 23, 42, 0.075);
+  --teacher-glass-shadow-hover: 0 12px 30px rgba(15, 23, 42, 0.1);
+}
+
+html.performance-lite .student-dashboard::before,
+html.performance-lite .teacher-dashboard::before {
+  inset: 0;
+  opacity: 0.34;
+  filter: none !important;
+  animation: none !important;
+  background-size: 100% 100% !important;
+}
+
+html.performance-lite .student-dashboard__backdrop,
+html.performance-lite .teacher-dashboard__backdrop {
+  opacity: 0.5;
+  animation: none !important;
+  background-size: 40px 40px, 40px 40px, 100% 100% !important;
+}
+
+html.performance-lite .student-dashboard__backdrop::before,
+html.performance-lite .student-dashboard__backdrop::after,
+html.performance-lite .teacher-dashboard__backdrop::before,
+html.performance-lite .teacher-dashboard__backdrop::after {
+  display: none !important;
+}
+
+html.performance-lite :is(
+  .student-sidebar,
+  .student-header,
+  .student-welcome__hero,
+  .student-today-panel,
+  .student-stat-card,
+  .student-courses,
+  .course-card,
+  .schedule-item,
+  .student-schedule__container,
+  .promo-card,
+  .student-classes__header,
+  .student-classes__stat,
+  .student-classes__empty-state,
+  .student-classes__tabs-row,
+  .student-class-card,
+  .student-class-detail__header,
+  .student-class-detail__tabs.page-tabs,
+  .class-overview__hero,
+  .class-overview__details,
+  .class-overview__metric,
+  .exam-timeline-summary,
+  .exam-timeline-item__card,
+  .exam-timeline-empty,
+  .exam-timeline-error,
+  .student-quick-page__hero,
+  .student-empty-hero,
+  .student-quick-card,
+  .vocabulary-category-card,
+  .vocabulary-flashcard,
+  .vocabulary-sentence-practice,
+  .vocabulary-session-complete,
+  .teacher-sidebar,
+  .teacher-header,
+  .teacher-page-header,
+  .teacher-home-shortcut,
+  .teacher-home-panel,
+  .teacher-class-card,
+  .teacher-exam-card,
+  .teacher-tabs.page-tabs,
+  .teacher-modal,
+  .page-state,
+  .student-invite,
+  .student-list-summary,
+  .student-list-filters,
+  .student-list-items,
+  .student-list-empty,
+  .student-list-item,
+  .student-detail-modal,
+  .exam-detail__panel,
+  .exam-detail__section,
+  .exam-detail__question,
+  .exam-detail__file-item,
+  .submission-grader__card,
+  .create-exam__form,
+  .audio-upload-panel,
+  .vocabulary-create-card,
+  .vocabulary-admin-detail,
+  .vocabulary-admin-section,
+  .vocabulary-admin-tabs,
+  .vocabulary-class-menu,
+  .vocabulary-word-item,
+  .vocabulary-word-editor,
+  .vocabulary-interaction-class-group,
+  .vocabulary-interaction-students,
+  .vocabulary-interaction-detail,
+  .vocabulary-sentence-card
+) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.075) !important;
+}
+
+html.performance-lite .student-dashboard .student-content__container > *,
+html.performance-lite .teacher-dashboard .teacher-content-container > * {
+  animation: none !important;
+  transition-duration: 0.14s !important;
+  filter: none !important;
+}
+
+html.performance-lite .student-dashboard :is(
+  .student-welcome__hero,
+  .student-today-panel,
+  .student-courses,
+  .course-card,
+  .student-classes__header,
+  .student-class-detail__header,
+  .exam-timeline-summary
+)::before,
+html.performance-lite .teacher-dashboard :is(
+  .teacher-page-header,
+  .teacher-class-card,
+  .teacher-exam-card
+)::before {
+  animation: none !important;
+  transition-duration: 0.14s !important;
+  filter: none !important;
+}
+
+html.performance-lite .student-dashboard :is(
+  .student-welcome__hero:hover,
+  .student-today-panel:hover,
+  .student-courses:hover,
+  .course-card:hover,
+  .student-classes__header:hover,
+  .student-class-detail__header:hover,
+  .exam-timeline-summary:hover
+)::before {
+  transform: none !important;
+}
+
+html.performance-lite .student-dashboard :is(
+  .student-header,
+  .student-header__profile,
+  .student-header__pill,
+  .student-sidebar__brand,
+  .student-sidebar__progress-card,
+  .student-sidebar__nav-item,
+  .student-sidebar__boost,
+  .student-back-button,
+  .student-welcome__btn,
+  .course-card,
+  .promo-card__btn,
+  .student-classes__tab,
+  .student-classes__search-form,
+  .student-class-card,
+  .student-class-card__action,
+  .student-class-detail__tabs .page-tab,
+  .exam-timeline-item__card,
+  .exam-timeline-item__btn,
+  .vocabulary-category-card,
+  .vocabulary-review-btn
+),
+html.performance-lite .teacher-dashboard :is(
+  .teacher-header,
+  .teacher-sidebar__nav-item,
+  .teacher-class-card,
+  .teacher-exam-card,
+  .teacher-tabs .page-tab,
+  .teacher-btn-primary,
+  .teacher-btn-outline,
+  .vocabulary-category-card,
+  .vocabulary-word-item,
+  .student-list-item,
+  .exam-detail__question,
+  .submission-grader__card
+) {
+  transition-duration: 0.14s !important;
+  transition-property: transform, box-shadow, border-color, background-color, color, opacity !important;
+}
+
+html.performance-lite .student-dashboard :is(
+  .student-header__profile:hover,
+  .student-header__pill:hover,
+  .student-back-button:hover,
+  .student-welcome__btn:hover,
+  .promo-card__btn:hover,
+  .exam-timeline-item__btn:hover
+),
+html.performance-lite .teacher-dashboard :is(
+  .teacher-class-card:hover,
+  .teacher-exam-card:hover,
+  .teacher-btn-primary:hover,
+  .teacher-btn-outline:hover,
+  .vocabulary-category-card:hover,
+  .vocabulary-word-item:hover,
+  .student-list-item:hover,
+  .exam-detail__question:hover,
+  .submission-grader__card:hover
+) {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.085) !important;
+}
+
+html.performance-lite .skeleton-line::after,
+html.performance-lite .skeleton-avatar::after,
+html.performance-lite .teacher-class-card--skeleton::before,
+html.performance-lite .student-class-card--loading::before,
+html.performance-lite .vocabulary-category-card--loading::before {
+  animation: none !important;
+}
+
+html.performance-lite .student-content,
+html.performance-lite .teacher-main {
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not(.performance-lite) {
+    scroll-behavior: auto;
+  }
+}

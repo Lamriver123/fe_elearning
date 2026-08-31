@@ -1,14 +1,15 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Toaster } from 'react-hot-toast'
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom'
-import LoginPage from './pages/Login.tsx'
-import RegisterPage from './pages/Register.tsx'
-import VerifyOtpPage from './pages/VerifyOtp.tsx'
-import StudentHome from './pages/StudentHome.tsx'
-import TeacherDash from './pages/TeacherDash.tsx'
 import { AuthProvider } from './features/auth/application/AuthProvider'
 import { useAuth } from './features/auth/application/useAuth'
 import { USER_ROLES } from './shared/constants/roles'
+
+const LoginPage = lazy(() => import('./pages/Login.tsx'))
+const RegisterPage = lazy(() => import('./pages/Register.tsx'))
+const VerifyOtpPage = lazy(() => import('./pages/VerifyOtp.tsx'))
+const StudentHome = lazy(() => import('./pages/StudentHome.tsx'))
+const TeacherDash = lazy(() => import('./pages/TeacherDash.tsx'))
 
 const ROUTES = {
   login: '/login',
@@ -70,34 +71,36 @@ function AppRoutes() {
   const navigate = useNavigate()
 
   return (
-    <Routes>
-      <Route element={<AuthRoute />}>
-        <Route path={ROUTES.login} element={<LoginPage onLoginSuccess={(session) => {
-          navigate(session.user.role === USER_ROLES.TEACHER ? ROUTES.teacher : ROUTES.student, { replace: true })
-        }} />} />
-        
-        <Route path={ROUTES.register} element={<RegisterPage onRegisterSuccess={(email) => {
-          setRegisterEmail(email)
-          navigate(ROUTES.verifyOtp)
-        }} />} />
-        
-        <Route path={ROUTES.verifyOtp} element={
-          registerEmail ? 
-          <VerifyOtpPage email={registerEmail} onVerifySuccess={() => navigate(ROUTES.login, { replace: true })} /> 
-          : <Navigate to={ROUTES.register} replace />
-        } />
-      </Route>
+    <Suspense fallback={<AppLoading />}>
+      <Routes>
+        <Route element={<AuthRoute />}>
+          <Route path={ROUTES.login} element={<LoginPage onLoginSuccess={(session) => {
+            navigate(session.user.role === USER_ROLES.TEACHER ? ROUTES.teacher : ROUTES.student, { replace: true })
+          }} />} />
+          
+          <Route path={ROUTES.register} element={<RegisterPage onRegisterSuccess={(email) => {
+            setRegisterEmail(email)
+            navigate(ROUTES.verifyOtp)
+          }} />} />
+          
+          <Route path={ROUTES.verifyOtp} element={
+            registerEmail ? 
+            <VerifyOtpPage email={registerEmail} onVerifySuccess={() => navigate(ROUTES.login, { replace: true })} /> 
+            : <Navigate to={ROUTES.register} replace />
+          } />
+        </Route>
 
-      <Route element={<ProtectedRoute allowedRole={USER_ROLES.STUDENT} />}>
-        <Route path={`${ROUTES.student}/*`} element={user ? <StudentHome user={user} onLogout={logout} /> : null} />
-      </Route>
+        <Route element={<ProtectedRoute allowedRole={USER_ROLES.STUDENT} />}>
+          <Route path={`${ROUTES.student}/*`} element={user ? <StudentHome user={user} onLogout={logout} /> : null} />
+        </Route>
 
-      <Route element={<ProtectedRoute allowedRole={USER_ROLES.TEACHER} />}>
-        <Route path={`${ROUTES.teacher}/*`} element={user ? <TeacherDash user={user} onLogout={logout} /> : null} />
-      </Route>
+        <Route element={<ProtectedRoute allowedRole={USER_ROLES.TEACHER} />}>
+          <Route path={`${ROUTES.teacher}/*`} element={user ? <TeacherDash user={user} onLogout={logout} /> : null} />
+        </Route>
 
-      <Route path="*" element={<Navigate to={ROUTES.login} replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to={ROUTES.login} replace />} />
+      </Routes>
+    </Suspense>
   )
 }
 
